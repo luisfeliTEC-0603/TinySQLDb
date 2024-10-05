@@ -11,12 +11,5 @@ namespace QueryProcessor.Operations
 
             return Store.GetInstance().UpdateSentence(tableName, selectedColumns, whereClause);
         }
-
-        // Sobrecarga para cuando NO existe una cláusula WHERE (2 parámetros)
-        internal OperationStatus Execute(string tableName, string[] selectedColumns)
-        {
-            // Aquí procesas el UPDATE sin la cláusula WHERE
-            return Store.GetInstance().UpdateSentence(tableName, selectedColumns);
-        }
     }
 }

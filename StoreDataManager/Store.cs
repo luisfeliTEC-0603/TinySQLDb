@@ -85,13 +85,6 @@ namespace StoreDataManager
             return OperationStatus.Success;
         }
 
-        
-
-        public OperationStatus UpdateSentence(string tableName, string[] selectedColumns)
-        {
-            return OperationStatus.Success;
-        }
-
 
         public OperationStatus CreateTable(string DirectoryName, string Sentence) 
         {

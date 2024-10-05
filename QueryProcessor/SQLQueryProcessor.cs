@@ -77,16 +77,31 @@
 
                         return new UpdateSentence().Execute(directoryName, selectedColumns, whereClause);
                     }
-
-                    return new UpdateSentence().Execute(directoryName, selectedColumns);
+                    return new UpdateSentence().Execute(directoryName, selectedColumns, null);
+         
                 }
 
                 // SELECT DATABASE SQL sentence
-                if (sentence.StartsWith("SELECT"))
+                if (sentence.StartsWith("SELECT")) // SELECT columns/* WHERE identification num ORDERED BY columns asc/desc
                 {
-                    //...
+                    string columns = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[1];
+                    sentence = sentence.Replace($"SELECT {columns} WHERE", "").Trim().TrimEnd(';');
 
-                    return new Select().Execute();
+                    string[] command = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    string whereClause = command[0] + " " + command[1];
+                    
+                    int OrderIndex = sentence.IndexOf("ORDERED");
+
+                    if (OrderIndex != -1)
+                    {
+                        return new Select().Execute(columns, whereClause, null);
+                    }
+                    else
+                    {
+                        string OrderClause = command[OrderIndex + 2] + " " + command[OrderIndex + 2];
+                        return new Select().Execute(columns, whereClause, OrderClause);
+                    }
+
                 }
 
                 else

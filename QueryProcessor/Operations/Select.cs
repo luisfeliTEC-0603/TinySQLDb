@@ -10,7 +10,7 @@ namespace QueryProcessor.Operations
 {
     internal class Select
     {
-        public OperationStatus Execute()
+        public OperationStatus Execute(string column, string whereClause, string OrderClause)
         {
             // This is only doing the query but not returning results.
             return Store.GetInstance().Select();
