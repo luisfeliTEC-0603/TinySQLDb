@@ -54,8 +54,46 @@ namespace StoreDataManager
             
             return OperationStatus.Success;
         }
+        
+        public OperationStatus SetDataBase(string NewDirectory)
+        {
+            try
+            {
+                Directory.SetCurrentDirectory($@"{DataPath}\{NewDirectory}");   
+                return OperationStatus.Success;
+            }
+            catch //In case the newdirectory does not exist
+            {
+                return OperationStatus.Error;
+            }
+        }
 
-        public OperationStatus CreateTable()
+        public OperationStatus DropTable(string TableName)
+        {
+            try
+            {
+                File.Delete(TableName + ".Table");
+                return OperationStatus.Success;
+            }
+            catch //The table to be eliminated didnt exist!
+            {
+                return OperationStatus.Error;
+            }
+        }
+        public OperationStatus UpdateSentence(string tableName, string[] selectedColumns, string whereClause)
+        {
+            return OperationStatus.Success;
+        }
+
+        
+
+        public OperationStatus UpdateSentence(string tableName, string[] selectedColumns)
+        {
+            return OperationStatus.Success;
+        }
+
+
+        public OperationStatus CreateTable(string DirectoryName, string Sentence) 
         {
             // Creates a default DB called TESTDB
             Directory.CreateDirectory($@"{DataPath}\TESTDB");

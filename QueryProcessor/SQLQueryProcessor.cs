@@ -24,23 +24,23 @@
                 // CREATE DATABASE SQL sentence
                 if (sentence.StartsWith("CREATE DATABASE"))
                 {
-                    directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
+                    string directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
 
                     return new CreateDataBase().Execute(directoryName);
                 }
 
-                // SET DATABASE SQL sentence
+                // SET DATABASE SQL sentence, change from different DB
                 if (sentence.StartsWith("SET"))
                 {
-                    directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
+                    string directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
 
-                    return new Set().Execute(directoryName);
+                    return new SetDataBase().Execute(directoryName);
                 }
 
                 // DROP DATABASE SQL sentence
                 if (sentence.StartsWith("DROP TABLE"))
                 {
-                    directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
+                    string directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
 
                     return new DropTable().Execute(directoryName);
                 }
@@ -48,7 +48,7 @@
                 // CREATE DATABASE SQL sentence
                 if (sentence.StartsWith("CREATE TABLE"))
                 {
-                    directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
+                    string directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
                     sentence = sentence.Replace($"CREATE TABLE {directoryName}", "").Trim().TrimEnd(';');
 
                     if (sentence.StartsWith("(") && sentence.EndsWith(")"))
@@ -62,21 +62,23 @@
                 // UPDATE SQL sentence
                 if (sentence.StartsWith("UPDATE"))
                 {
-                    directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[1];
-                    sentence = sentence.Replace($"CREATE TABLE {directoryName} SET", "").Trim().TrimEnd(';');
+                    string directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[1];
+                    sentence = sentence.Replace($"UPDATE {directoryName} SET", "").Trim().TrimEnd(';');
 
-                    selectedColumns = sentence.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                    string[] selectedColumns = sentence.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
-                    whereIndex = sentence.IndexOf("WHERE");
+                    int whereIndex = sentence.IndexOf("WHERE");
 
                     if (whereIndex != -1)
                     {
-                        string columnAssignments = sentence.Substring(0, index).Trim();
+                        string columnAssignments = sentence.Substring(0, whereIndex).Trim();
 
-                        string whereClause = sentence.Substring(index + "WHERE".Length).Trim();
+                        string whereClause = sentence.Substring(whereIndex + "WHERE".Length).Trim();
+
+                        return new UpdateSentence().Execute(directoryName, selectedColumns, whereClause);
                     }
 
-                    return new Update().Execute();
+                    return new UpdateSentence().Execute(directoryName, selectedColumns);
                 }
 
                 // SELECT DATABASE SQL sentence
