@@ -17,7 +17,7 @@
 
         // Method to process SQL sentences
         public class SQLQueryProcessor
-        {
+        { // CREATEA TABLE AMIGUITOS (Num INTEGER, color VARCHAR(30)) ----- ["Num", "INTEGER", "color", "VARCHAR(30)"]
 
             public static OperationStatus Execute(string sentence)
             {
@@ -51,12 +51,14 @@
                     string directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
                     sentence = sentence.Replace($"CREATE TABLE {directoryName}", "").Trim().TrimEnd(';');
 
+                    string[] x = null; //DELETE THIS
+
                     if (sentence.StartsWith("(") && sentence.EndsWith(")"))
                     {
                         sentence = sentence.Substring(1, sentence.Length - 2).Trim();
                     } 
 
-                    return new CreateTable().Execute(directoryName, sentence);
+                    return new CreateTable().Execute(directoryName, x);
                 }
 
                 // UPDATE SQL sentence

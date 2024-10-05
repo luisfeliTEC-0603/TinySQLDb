@@ -1,5 +1,6 @@
 ﻿using Entities;
 using System.IO.Compression;
+using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 
@@ -27,7 +28,8 @@ namespace StoreDataManager
         private readonly string DataPath;
         private readonly string SystemCatalogPath;
         private readonly string SystemDatabasesFile;
-        private readonly string SystemTablesFile;        
+        private readonly string SystemTablesFile;     
+        private string CurrentPath = null;   
         
         public Store()
         {
@@ -36,6 +38,7 @@ namespace StoreDataManager
             SystemCatalogPath = Path.Combine(DatabaseBasePath, "SystemCatalog");
             SystemDatabasesFile = Path.Combine(SystemCatalogPath, "SystemDatabases.table");
             SystemTablesFile = Path.Combine(SystemCatalogPath, "SystemTables.table");
+            DataPath = $@"C:\TinySql\Data";
 
             this.InitializeSystemCatalog();
         }
@@ -60,6 +63,7 @@ namespace StoreDataManager
             try
             {
                 Directory.SetCurrentDirectory($@"{DataPath}\{NewDirectory}");   
+                CurrentPath = $@"{DataPath}\{NewDirectory}";
                 return OperationStatus.Success;
             }
             catch //In case the newdirectory does not exist
@@ -95,57 +99,97 @@ namespace StoreDataManager
 
         public OperationStatus DeleteFromTable(string directory, string whereClause)
         {
+
             return OperationStatus.Success;
         }
 
-        public OperationStatus CreateTable(string DirectoryName, string Sentence) 
+        public OperationStatus CreateTable(string DirectoryName, string[] Sentence) 
         {
-            // Creates a default DB called TESTDB
-            Directory.CreateDirectory($@"{DataPath}\TESTDB");
-
-            // Creates a default Table called ESTUDIANTES
-            var tablePath = $@"{DataPath}\TESTDB\ESTUDIANTES.Table";
-
-            using (FileStream stream = File.Open(tablePath, FileMode.OpenOrCreate))
-            using (BinaryWriter writer = new (stream))
+            if (CurrentPath != null)
             {
-                // Create an object with a hardcoded.
-                // First field is an int, second field is a string of size 30,
-                // third is a string of 50
-                int id = 1;
-                string nombre = "Isaac".PadRight(30); // Pad to make the size of the string fixed
-                string apellido = "Ramirez".PadRight(50);
+                // Creates a default Table with DirectoryName as name
+                var tablePath = $@"{CurrentPath}\{DirectoryName}.Table";
 
-                writer.Write(id);
-                writer.Write(nombre);   
-                writer.Write(apellido);        
+                int SentenceLen = Sentence.Length;
+
+                using (FileStream stream = File.Open(tablePath, FileMode.OpenOrCreate))
+                using (BinaryWriter writer = new (stream))
+                {
+                    writer.Write(SentenceLen);
+                    for (int i = 1; 1 < SentenceLen - 1 ; i = i + 2 )
+                    {
+                        if (Sentence[i].StartsWith("VARCHAR"))
+                        {
+                            int VarcharValue = GetVarcharSize(Sentence[i]);
+                            writer.Write(VarcharValue);
+                            writer.Write(Sentence[i-1].PadRight(VarcharValue)); //Writes the column name with RightPath that VARCHAR indicates
+                        }
+                        else if (Sentence[i] == "INTEGER") 
+                        {
+                            writer.Write(Sentence[i-1].PadRight(50));
+                        }
+                        else //DateTime column
+                        {
+                            writer.Write(Sentence[i-1].PadRight(50));
+                        }
+                    }     
+                }
+                return OperationStatus.Success;
             }
-            return OperationStatus.Success;
+            else
+            {
+                //return new Exception ____missing execption for this case
+                return OperationStatus.Error;
+            }
         }
 
         public OperationStatus Insert(string directory, string[] data)
         {
-            // Creates a default DB called TESTDB
-            Directory.CreateDirectory($@"{DataPath}\TESTDB");
-
             // Creates a default Table called ESTUDIANTES
-            var tablePath = $@"{DataPath}\TESTDB\ESTUDIANTES.Table";
-
-            using (FileStream stream = File.Open(tablePath, FileMode.OpenOrCreate))
-            using (BinaryWriter writer = new (stream))
+            var tablePath = $@"{CurrentPath}\{directory}.Table";
+            int ColumnLenght;
+            int DataLenght = data.Length;
+            using (BinaryReader reader = new BinaryReader(File.Open(tablePath, FileMode.Open)))
             {
-                // Create an object with a hardcoded.
-                // First field is an int, second field is a string of size 30,
-                // third is a string of 50
-                int id = 1;
-                string nombre = "Isaac".PadRight(30); // Pad to make the size of the string fixed
-                string apellido = "Ramirez".PadRight(50);
-
-                writer.Write(id);
-                writer.Write(nombre);   
-                writer.Write(apellido);        
+                ColumnLenght = reader.ReadInt32();
             }
-            return OperationStatus.Success;
+            if (ColumnLenght != DataLenght) //Data has more or less elements than columns on the table.
+            {
+                return OperationStatus.Error;
+            }
+            else
+            {
+                List<int> IndicatorsVarchar = GetRightPathValues(tablePath);
+                int IndicatorLenght = IndicatorsVarchar.Count;
+                using (FileStream stream = File.Open(tablePath, FileMode.Append))
+                using (BinaryWriter writer = new (stream))
+                {
+                    for (int i = 0; i < DataLenght - 1; i++ )
+                    {
+                        for (int j = 0; j < IndicatorLenght - 1; j = j +2 )
+                        {
+                            if (j == IndicatorsVarchar[i])
+                            {
+                                writer.Write(data[i].PadRight(IndicatorsVarchar[i + 1])); //In the case that the data poisition is alligned with
+                                //a position related to a PadRight
+                            }
+                        }
+                        try //Data position is a integer
+                        {
+                            int ColumnData = int.Parse(data[i]);
+                            writer.Write(ColumnData);
+                        }
+                        catch //Data position is a DateTime
+                        {
+                            DateTime date = DateTime.Parse(data[i]);
+                            writer.Write(date.Ticks);
+                        }
+                    }
+
+                }
+                return OperationStatus.Success;
+            }
+
         }
 
         public OperationStatus Select(string column, string whereClause, string OrderClause)
@@ -169,6 +213,50 @@ namespace StoreDataManager
                 return OperationStatus.Success;
             }
 
+        }
+
+        public int GetVarcharSize(string varcharString)
+        {
+            int startIndex = varcharString.IndexOf('(');
+            int endIndex = varcharString.IndexOf(')');
+
+            if (startIndex != -1 && endIndex != -1 && endIndex > startIndex)
+            {
+                string numberString = varcharString.Substring(startIndex + 1, endIndex - startIndex - 1);
+                if (int.TryParse(numberString, out int size))
+                {
+                    return size;
+                }
+            }
+            
+            throw new ArgumentException("El formato de la cadena no es válido.");
+        }
+
+        public List<int> GetRightPathValues(string path)
+        {
+            List<int> result = new List<int>();
+
+            using (BinaryReader reader = new BinaryReader(File.Open(path, FileMode.Open)))
+            {
+                int ColLength = reader.ReadInt32();
+                for (int i = 0; i < ColLength - 1; i++)
+                {
+                    try
+                    {
+                        int num = reader.ReadInt32();
+                        result.Add(i);
+                        result.Add(num); 
+                        //The idea is to save the column number and the PadRight requested [ColumnNum, VarcharValue]
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+                }
+
+            }
+
+            return result;
         }
     }
 }
