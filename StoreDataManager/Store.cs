@@ -85,6 +85,10 @@ namespace StoreDataManager
             return OperationStatus.Success;
         }
 
+        public OperationStatus DeleteFromTable(string directory, string[] whereClause)
+        {
+            return OperationStatus.Success;
+        }
 
         public OperationStatus CreateTable(string DirectoryName, string Sentence) 
         {
@@ -111,7 +115,7 @@ namespace StoreDataManager
             return OperationStatus.Success;
         }
 
-        public OperationStatus insert()
+        public OperationStatus Insert(string directory, string[] data)
         {
             // Creates a default DB called TESTDB
             Directory.CreateDirectory($@"{DataPath}\TESTDB");

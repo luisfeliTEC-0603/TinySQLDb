@@ -98,12 +98,30 @@
                     }
                     else
                     {
-                        string OrderClause = command[OrderIndex + 2] + " " + command[OrderIndex + 2];
+                        string OrderClause = command[OrderIndex + 2] + " " + command[OrderIndex + 3];
                         return new Select().Execute(columns, whereClause, OrderClause);
                     }
-
                 }
 
+                // DELETE A ROW FROM TAGBLE 
+                if (sentence.StartsWith("DELETE")) //DELETE FROM Estudiantes WHERE (ID == 1)
+                {
+                    string directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
+                    sentence = sentence.Replace($"DELETE FROM {directoryName} WHERE", "").Trim().TrimEnd(';');
+
+                    string[] whereClause = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); //"ID == 1", 3 elements
+                    return new DeleteFromTable().Execute(directoryName, whereClause);
+                }
+
+                // INSERT A ROW TO A TABLE
+                if (sentence.StartsWith("INSERT INTO"))
+                {
+                    string directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
+                    sentence = sentence.Replace($"INSERT INTO {directoryName}", "").Trim().TrimEnd(';');
+                    string[] data = sentence.Split(new[] { ' ' });
+
+                    return new Insert().Execute(directoryName, data);
+                }
                 else
                 {
                     throw new UnknownSQLSentenceException();

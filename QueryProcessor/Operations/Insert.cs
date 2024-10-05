@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Entities;
+using StoreDataManager;
 
 namespace QueryProcessor.Operations
 {
     internal class Insert
     {
+        internal OperationStatus Execute(string TableName, string[] Data)
+        {
+            return Store.GetInstance().Insert(TableName, Data);
+        }
     }
 }
