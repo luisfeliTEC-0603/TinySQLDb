@@ -15,12 +15,25 @@
         // INSERT INTO <table-name> VALUES ( arg1, agr2, ... )
         // INDEX ???
 
+        // whereClause (string) => bool 
+        // columns string[]
+        // string => "INTEGER ID, COLOR VARCAHR(30)"
+
+        // ??? 
+        // string[] => [INTEGER, ID, COLOR, VARCHAR(30)]
+
         // Method to process SQL sentences
         public class SQLQueryProcessor
         {
-
             public static OperationStatus Execute(string sentence)
             {
+
+                string directoryName;
+                string[] columnEntries;
+                string whereClause;
+                int whereIndex;
+                bool orderClause = false;
+
                 // CREATE DATABASE SQL sentence
                 if (sentence.StartsWith("CREATE DATABASE"))
                 {
@@ -56,16 +69,16 @@
                         sentence = sentence.Substring(1, sentence.Length - 2).Trim();
                     } 
 
-                    return new CreateTable().Execute(directoryName, sentence);
+                    columnEntries = sentence.Split(new[] { ' ' , ','}, StringSplitOptions.RemoveEmptyEntries);
+
+                    return new CreateTable().Execute(directoryName, columnEntries);
                 }
 
                 // UPDATE SQL sentence
                 if (sentence.StartsWith("UPDATE"))
                 {
-                    string directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[1];
+                    directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[1];
                     sentence = sentence.Replace($"UPDATE {directoryName} SET", "").Trim().TrimEnd(';');
-
-                    string[] selectedColumns = sentence.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
                     int whereIndex = sentence.IndexOf("WHERE");
 
@@ -73,57 +86,61 @@
                     {
                         string columnAssignments = sentence.Substring(0, whereIndex).Trim();
 
-                        string whereClause = sentence.Substring(whereIndex + "WHERE".Length).Trim();
+                        whereClause = sentence.Substring(whereIndex + "WHERE".Length).Trim();
 
-                        return new UpdateSentence().Execute(directoryName, selectedColumns, whereClause);
-                    }
-                    return new UpdateSentence().Execute(directoryName, selectedColumns, null);
-         
-                }
-
-                // SELECT DATABASE SQL sentence
-                if (sentence.StartsWith("SELECT")) // SELECT columns/* FROM talbe WHERE identification num ORDERED BY columns asc/desc
-                {
-                    string columns = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[1];
-                    sentence = sentence.Replace($"SELECT {columns} FROM", "").Trim().TrimEnd(';');
-
-                    string[] command = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-                    string Table = command[0];
-
-                    string whereClause = command[2] + " " + command[3];
-                    
-                    int OrderIndex = sentence.IndexOf("ORDERED");
-
-                    if (OrderIndex != -1)
-                    {
-                        return new Select().Execute(columns, whereClause, null);
+                        columnEntries = columnAssignments.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
                     }
                     else
                     {
-                        string OrderClause = command[OrderIndex + 2] + " " + command[OrderIndex + 3];
-                        return new Select().Execute(columns, whereClause, OrderClause);
+                        columnEntries = sentence.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
                     }
+
+                    return new Update().Execute(directoryName, columnEntries, whereClause);
                 }
 
-                // DELETE A ROW FROM TAGBLE 
-                if (sentence.StartsWith("DELETE")) //DELETE FROM Estudiantes WHERE (ID == 1)
+                // SELECT DATABASE SQL sentence
+                if (sentence.StartsWith("SELECT"))
                 {
-                    string directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
-                    sentence = sentence.Replace($"DELETE FROM {directoryName} WHERE", "").Trim().TrimEnd(';');
-                    
-                    return new DeleteFromTable().Execute(directoryName, sentence);
+                    directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[1];
+                    sentence = sentence.Replace($"SELECT {directoryName} FROM", "").Trim().TrimEnd(';');
+
+
+
+                    return new Select().Execute();
                 }
 
-                // INSERT A ROW TO A TABLE
+                // DELETE FROM SQL sentence
+                if (sentence.StartsWith("DELETE FROM"))
+                {
+                    directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
+                    sentence = sentence.Replace($"DELETE FROM {directoryName}", "").Trim().TrimEnd(';');
+
+                    whereIndex = sentence.IndexOf("WHERE");
+
+                    if (whereIndex != -1)
+                    {
+                        whereClause = sentence.Substring(whereIndex + "WHERE".Length).Trim();
+                    }
+
+                    return new Delete().Execute(directoryName, whereClause);
+                }
+
+                // INSERT INTO SQL sentence
                 if (sentence.StartsWith("INSERT INTO"))
                 {
-                    string directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
-                    sentence = sentence.Replace($"INSERT INTO {directoryName}", "").Trim().TrimEnd(';');
-                    string[] data = sentence.Split(new[] { ' ' });
+                    directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
+                    sentence = sentence.Replace($"INSERT INTO {directoryName} VALUES", "").Trim().TrimEnd(';');
 
-                    return new Insert().Execute(directoryName, data);
+                    if (sentence.StartsWith("(") && sentence.EndsWith(")"))
+                    {
+                        sentence = sentence.Substring(1, sentence.Length - 2).Trim();
+                    } 
+
+                    columnEntries = sentence.Split(new[] { ' ' , ','}, StringSplitOptions.RemoveEmptyEntries);
+
+                    return new Insert().Execute(directoryName, columnEntries);
                 }
+
                 else
                 {
                     throw new UnknownSQLSentenceException();
