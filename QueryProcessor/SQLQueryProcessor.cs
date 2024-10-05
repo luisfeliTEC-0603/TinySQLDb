@@ -82,13 +82,16 @@
                 }
 
                 // SELECT DATABASE SQL sentence
-                if (sentence.StartsWith("SELECT")) // SELECT columns/* WHERE identification num ORDERED BY columns asc/desc
+                if (sentence.StartsWith("SELECT")) // SELECT columns/* FROM talbe WHERE identification num ORDERED BY columns asc/desc
                 {
                     string columns = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[1];
-                    sentence = sentence.Replace($"SELECT {columns} WHERE", "").Trim().TrimEnd(';');
+                    sentence = sentence.Replace($"SELECT {columns} FROM", "").Trim().TrimEnd(';');
 
                     string[] command = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    string whereClause = command[0] + " " + command[1];
+
+                    string Table = command[0];
+
+                    string whereClause = command[2] + " " + command[3];
                     
                     int OrderIndex = sentence.IndexOf("ORDERED");
 
@@ -108,9 +111,8 @@
                 {
                     string directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
                     sentence = sentence.Replace($"DELETE FROM {directoryName} WHERE", "").Trim().TrimEnd(';');
-
-                    string[] whereClause = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); //"ID == 1", 3 elements
-                    return new DeleteFromTable().Execute(directoryName, whereClause);
+                    
+                    return new DeleteFromTable().Execute(directoryName, sentence);
                 }
 
                 // INSERT A ROW TO A TABLE

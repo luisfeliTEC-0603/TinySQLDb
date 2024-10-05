@@ -82,10 +82,18 @@ namespace StoreDataManager
         }
         public OperationStatus UpdateSentence(string tableName, string[] selectedColumns, string whereClause)
         {
+            if (whereClause == null)
+            {
+
+            }
+            else
+            {
+
+            }
             return OperationStatus.Success;
         }
 
-        public OperationStatus DeleteFromTable(string directory, string[] whereClause)
+        public OperationStatus DeleteFromTable(string directory, string whereClause)
         {
             return OperationStatus.Success;
         }
@@ -140,19 +148,27 @@ namespace StoreDataManager
             return OperationStatus.Success;
         }
 
-        public OperationStatus Select()
+        public OperationStatus Select(string column, string whereClause, string OrderClause)
         {
-            // Creates a default Table called ESTUDIANTES
-            var tablePath = $@"{DataPath}\TESTDB\ESTUDIANTES.Table";
-            using (FileStream stream = File.Open(tablePath, FileMode.OpenOrCreate))
-            using (BinaryReader reader = new (stream))
+            if (OrderClause == null)
             {
-                // Print the values as a I know exactly the types, but this needs to be done right
-                Console.WriteLine(reader.ReadInt32());
-                Console.WriteLine(reader.ReadString());
-                Console.WriteLine(reader.ReadString());
+                // Creates a default Table called ESTUDIANTES
+                var tablePath = $@"{DataPath}\TESTDB\ESTUDIANTES.Table";
+                using (FileStream stream = File.Open(tablePath, FileMode.OpenOrCreate))
+                using (BinaryReader reader = new (stream))
+                {
+                    // Print the values as a I know exactly the types, but this needs to be done right
+                    Console.WriteLine(reader.ReadInt32());
+                    Console.WriteLine(reader.ReadString());
+                    Console.WriteLine(reader.ReadString());
+                    return OperationStatus.Success;
+                }
+            }
+            else
+            {
                 return OperationStatus.Success;
             }
+
         }
     }
 }

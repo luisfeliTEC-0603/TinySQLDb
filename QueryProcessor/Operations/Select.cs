@@ -13,7 +13,7 @@ namespace QueryProcessor.Operations
         public OperationStatus Execute(string column, string whereClause, string OrderClause)
         {
             // This is only doing the query but not returning results.
-            return Store.GetInstance().Select();
+            return Store.GetInstance().Select(column, whereClause, OrderClause);
         }
     }
 }
