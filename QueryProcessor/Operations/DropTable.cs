@@ -5,9 +5,9 @@ namespace QueryProcessor.Operations
 {
     internal class DropTable
     {
-        internal OperationStatus Execute(string TableName)
+        internal OperationStatus Execute(string tableName)
         {
-            return Store.GetInstance().DropTable(TableName);
+            return Store.GetInstance().DropTable(tableName);
         }
     }
 }

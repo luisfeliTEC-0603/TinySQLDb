@@ -5,9 +5,9 @@ namespace QueryProcessor.Operations
 {
     internal class SetDataBase
     {
-        internal OperationStatus Execute(string NewDirectory)
+        internal OperationStatus Execute(string newDirectory)
         {
-            return Store.GetInstance().SetDataBase(NewDirectory);
+            return Store.GetInstance().SetDataBase(newDirectory);
         }
     }
 }

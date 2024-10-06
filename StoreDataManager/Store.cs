@@ -58,8 +58,6 @@ namespace StoreDataManager
 
         private void InitializeSystemCatalog()
         {
-            // Always make sure that the system catalog and above folder
-            // exist when initializing
             Directory.CreateDirectory(SystemCatalogPath);
         }
 
@@ -97,7 +95,8 @@ namespace StoreDataManager
                 return OperationStatus.Error;
             }
         }
-        public OperationStatus UpdateSentence(string tableName, string[] selectedColumns, string whereClause)
+        
+        public OperationStatus Update(string tableName, string[] selectedColumns, string whereClause)
         {
             if (whereClause == null)
             {
@@ -110,7 +109,7 @@ namespace StoreDataManager
             return OperationStatus.Success;
         }
 
-        public OperationStatus DeleteFromTable(string DirectoryName, string whereClause) //whereCluse example "ID != 0 && Color = Azul"
+        public OperationStatus Delete(string DirectoryName, string whereClause) 
         {
             var tablePath = $@"{CurrentPath}\{DirectoryName}.Table";
             string[] resultArray = whereClause.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
@@ -155,7 +154,6 @@ namespace StoreDataManager
         {
             if (CurrentPath != null)
             {
-                // Creates a default Table with DirectoryName as name
                 var tablePath = $@"{CurrentPath}\{DirectoryName}.Table";
 
                 int SentenceLen = Sentence.Length;
@@ -193,7 +191,6 @@ namespace StoreDataManager
 
         public OperationStatus Insert(string directory, string[] data)
         {
-            // Creates a default Table called ESTUDIANTES
             var tablePath = $@"{CurrentPath}\{directory}.Table";
             int ColumnLenght;
             int DataLenght = data.Length;
@@ -201,7 +198,7 @@ namespace StoreDataManager
             {
                 ColumnLenght = reader.ReadInt32();
             }
-            if (ColumnLenght != DataLenght) //Data has more or less elements than columns on the table.
+            if (ColumnLenght != DataLenght) 
             {
                 return OperationStatus.Error;
             }
@@ -240,7 +237,7 @@ namespace StoreDataManager
 
         }
 
-        public OperationStatus Select(string column, string whereClause, string OrderClause)
+        public OperationStatus Select(string directory, string[] columns, string whereClause, string OrderClause)
         {
             if (OrderClause == null)
             {
@@ -254,8 +251,8 @@ namespace StoreDataManager
                     Console.WriteLine(reader.ReadString());
                     Console.WriteLine(reader.ReadString());
                     return OperationStatus.Success;
+                    }
                 }
-            }
             else
             {
                 return OperationStatus.Success;
