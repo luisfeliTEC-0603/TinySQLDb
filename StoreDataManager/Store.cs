@@ -7,6 +7,7 @@ using System;
 using System.Data;
 using System.Diagnostics;
 using NCalc;
+using BST;
 
 namespace StoreDataManager
 {
@@ -16,7 +17,7 @@ namespace StoreDataManager
         // DROP TABLE <table-name> READY
         // SELECT ( *|<columns> ) FROM <table-name> [WHERE ( arg ) ORDER BY ( ASC/DEC )]
         // UPDATE <table-name> SET <column-name> = <new-value> [WHERE ( arg )];
-        // DELETE FROM <table-name> [WHERE ( arg )]
+        // DELETE FROM <table-name> [WHERE ( arg )] READY 
         // INSERT INTO <table-name> VALUES ( arg1, agr2, ... ) READY
         // INDEX ???
     public sealed class Store
@@ -113,6 +114,11 @@ namespace StoreDataManager
         public OperationStatus DeleteFromTable(string DirectoryName, string whereClause) //whereCluse example "ID != 0 && Color = Azul"
         {
             var tablePath = $@"{CurrentPath}\{DirectoryName}.Table";
+
+            BinarySearchTree bst = ConvertBinaryToBST(DirectoryName);
+            List<int> RightPadsFormat = IndexStringAndPad(DirectoryName);
+            List<string> ColumnsFormat = GetColumnsFormar(DirectoryName);
+
             string[] resultArray = whereClause.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             var ClauseExpresion = new Expression(whereClause);
 
@@ -123,31 +129,53 @@ namespace StoreDataManager
 
             bool expresion = (bool)ClauseExpresion.Evaluate(); //whereClause transformed into boolean expresion
 
-            using (FileStream stream = File.Open(tablePath, FileMode.OpenOrCreate))
+            List<Nodo> NodosPorEliminar = bst.GetNodesThat(expresion , ColumnsFormat );
+
+            for (int i = 0; i < NodosPorEliminar.Count() - 1; i++)
+            {
+                try
+                {
+                    int number = (int)NodosPorEliminar[i].GetAttribute(0);
+                    bst.Delete(number);
+                }
+                catch
+                {
+                    continue;
+                }
+               
+            } // at these point the nodes that made the experion true are eliminated now we need to erase the information above columns
+            //Configration and rewrite the data
+            CleanBinaryPath(DirectoryName); //It deletes all table information but the columns arragmentent.
+            List<Nodo> NodesForWriting = bst.GetAllNodes();
+            using (FileStream stream = File.Open(tablePath, FileMode.Append))
             using (BinaryWriter writer = new (stream))
             {
-                using (BinaryReader reader = new BinaryReader(File.Open(tablePath, FileMode.Open)))
-                {
-                    List<string> ColumnsFormat = new List<string>();
-                    int ColLength = reader.ReadInt32();
-                    for (int i = 0; i < ColLength -1; i++) // Returns a list with the names of the columns, so they can be compared with the rows.
+                for (int i = 0; i < NodesForWriting.Count(); i++)
+                {   
+                    for (int j = 0; j < RightPadsFormat.Count() - 1; j += 2 )
                     {
-                        try
+                        if (i == j)
                         {
-                            int VarcarNum = reader.ReadInt32();
-                            string column = reader.ReadString();
-                            ColumnsFormat.Add(column);
+                            string StringToWrite = (string)NodosPorEliminar[i].GetAttribute(i);
+                            writer.Write(StringToWrite.PadRight(RightPadsFormat[i + 1]));
                         }
-                        catch
+                        else
                         {
-                            string column = reader.ReadString();
-                            ColumnsFormat.Add(column);
+                            try
+                            {
+                                int NumToWrite = (int)NodosPorEliminar[i].GetAttribute(i);
+                                writer.Write(NumToWrite);
+                            }
+                            catch
+                            {
+                                DateTime Date = (DateTime)NodosPorEliminar[i].GetAttribute(i);
+                                writer.Write(Date.Ticks);
+                            }
                         }
                     }
                 }
-
-
             }
+ 
             return OperationStatus.Success;
         }
 
@@ -208,7 +236,7 @@ namespace StoreDataManager
             else
             {
                 List<int> IndicatorsVarchar = GetRightPathValues(tablePath);
-                int IndicatorLenght = IndicatorsVarchar.Count;
+                int IndicatorLenght = IndicatorsVarchar.Count();
                 using (FileStream stream = File.Open(tablePath, FileMode.Append))
                 using (BinaryWriter writer = new (stream))
                 {
@@ -305,6 +333,178 @@ namespace StoreDataManager
             }
 
             return result;
+        }
+        public List<int> IndexStringAndPad(string DirectoryName) //if string found on index 2 of a row it writes [2, 45] where 45 is the PadRight
+        {
+            List<int> VarcharValues = new List<int>();
+            var tablePath = $@"{CurrentPath}\{DirectoryName}.Table";
+
+            using (BinaryReader reader = new BinaryReader(File.Open(tablePath, FileMode.Open)))
+            {
+                int ColLength = reader.ReadInt32();
+                for (int i = 0; i < ColLength -1; i++) // Returns a list with the names of the columns, so they can be compared with the rows.
+                {
+                    try
+                    {
+                        int VarcarNum = reader.ReadInt32();
+                        string column = new string(reader.ReadChars(VarcarNum));
+                        VarcharValues.Add(VarcarNum);
+                    }
+                    catch
+                    {
+                        string column = reader.ReadString();
+                    }
+                }
+            }
+            return VarcharValues;
+        }
+        public List<string> GetColumnsFormar(string DirectoryName) //Retrun a list with the names of columns
+        {
+            List<string> ColumnsFormat = new List<string>();
+            var tablePath = $@"{CurrentPath}\{DirectoryName}.Table";
+            
+            using (BinaryReader reader = new BinaryReader(File.Open(tablePath, FileMode.Open)))
+            {
+                int ColLength = reader.ReadInt32();
+                for (int i = 0; i < ColLength -1; i++) // Returns a list with the names of the columns, so they can be compared with the rows.
+                {
+                    try
+                    {
+                        int VarcarNum = reader.ReadInt32();
+                        string column = new string(reader.ReadChars(VarcarNum));
+                        ColumnsFormat.Add(column);
+                    }
+                    catch
+                    {
+                        string column = new string(reader.ReadChars(50)); //Default value for column names for Integers and DateTime.
+                        ColumnsFormat.Add(column);
+                    }
+                }
+            }
+            return ColumnsFormat;
+        }
+        public BinarySearchTree ConvertBinaryToBST(string DirectoryName)
+        {
+            var tablePath = $@"{CurrentPath}\{DirectoryName}.Table";
+
+            BinarySearchTree bst = new BinarySearchTree();
+
+            using (BinaryReader reader = new BinaryReader(File.Open(tablePath, FileMode.Open)))
+            {
+                List<string> ColumnsFormat = new List<string>(); //Names of columns
+                List<int> VarcharValues = new List<int>(); //Contains a list with position and length of binary data [2, 49, 3, 67]
+                // that means that on index 2, there is a string with PadRight of 49.
+                List<object> RowToAdd = new List<object>(); //row to be added to the BST node
+                int ColLength = reader.ReadInt32();
+                for (int i = 0; i < ColLength -1; i++) // Returns a list with the names of the columns, so they can be compared with the rows.
+                {
+                    try
+                    {
+                        int VarcarNum = reader.ReadInt32();
+                        VarcharValues.Add(i);
+                        VarcharValues.Add(VarcarNum);
+                        string column = new string(reader.ReadChars(VarcarNum));
+                        ColumnsFormat.Add(column);
+                    }
+                    catch
+                    {
+                        string column = new string(reader.ReadChars(50)); //Default value for column names for Integers and DateTime.
+                        ColumnsFormat.Add(column);
+                    }
+                }
+
+                int VarLenght = VarcharValues.Count(); //Large of the auxiliar list to chech if an element is a string so the PadRight can be
+                //properly separated.
+                while (reader.BaseStream.Position < reader.BaseStream.Length) //While we are not on the end of the binaryread
+                {
+                    int Value = reader.ReadInt32();
+                    for (int i = 1; i < ColLength - 1; i++) // Check each element of a Binary "Cube" (row)
+                    {
+                        for (int j = 0; j < VarLenght; j += 2 )
+                        {
+                            if (i == j)
+                            {
+                                int FixedLenght = VarcharValues[j + 1];
+                                string data = new string(reader.ReadChars(FixedLenght));
+                                RowToAdd.Add(data);
+                            }
+                            else
+                            {
+                                try 
+                                {
+                                    int data = reader.ReadInt32();
+                                    RowToAdd.Add(data);
+                                }
+                                catch
+                                {
+                                    long ticks = reader.ReadInt64(); 
+                                    DateTime date = new DateTime(ticks);
+                                    RowToAdd.Add(date);
+                                }
+                            }
+                        }
+                    }
+                    bst.Add(Value, RowToAdd);
+                    RowToAdd.Clear();
+                }
+            }
+            return bst;
+        }
+
+        public void CleanBinaryPath(string DirectoryName)
+        {
+            var tablePath = $@"{CurrentPath}\{DirectoryName}.Table";
+
+            List<int> RightPadsFormat = IndexStringAndPad(DirectoryName);
+            List<string> ColumnsFormat = GetColumnsFormar(DirectoryName);
+
+            using (var memoryStream = new MemoryStream())
+            using (var fileStream = new FileStream(tablePath, FileMode.Open, FileAccess.Read))
+            using (var reader = new BinaryReader(fileStream))
+            {
+                int columnCount = reader.ReadInt32(); 
+
+                // Rewind the stream to the beginning for writing
+                memoryStream.Seek(0, SeekOrigin.Begin);
+                using (var writer = new BinaryWriter(memoryStream))
+                {
+                    writer.Write(columnCount); // Write number of columns
+
+                    // Write the names of the columns with their size
+                    for (int i = 0; i < ColumnsFormat.Count() - 1; i++ )
+                    {
+                        for (int j = 0; j < RightPadsFormat.Count() - 1; j += 2)
+                        {
+                            if (i == j)
+                            {
+                                writer.Write(RightPadsFormat[i]);
+                                writer.Write(ColumnsFormat[i].PadRight(RightPadsFormat[i + 1]));
+                            }
+                            break;
+                        }
+                        
+                        for (int j = 0; j < RightPadsFormat.Count() - 1; j += 2 )
+                        {
+                            if (i == j)
+                            {
+                                writer.Write(RightPadsFormat[i]);
+                                writer.Write(ColumnsFormat[i].PadRight(RightPadsFormat[i + 1]));
+                            }
+                            else
+                            {
+                                writer.Write(ColumnsFormat[i].PadRight(50));
+                            }
+                        }
+                    }
+                }
+
+                // Remplace new binary archive
+                using (var outputStream = new FileStream(tablePath, FileMode.Create, FileAccess.Write))
+                {
+                    memoryStream.Seek(0, SeekOrigin.Begin);
+                    memoryStream.CopyTo(outputStream);
+                }
+            }
         }
     }
 }
