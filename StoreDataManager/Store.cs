@@ -3,9 +3,22 @@ using System.IO.Compression;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System;
+using System.Data;
+using System.Diagnostics;
+using NCalc;
 
 namespace StoreDataManager
 {
+        // CREAT DATABSE <dataBase-name> READY
+        // SET <dataBase-name> READY
+        // CREAT TABLE <table-name> ( arg, ) READY
+        // DROP TABLE <table-name> READY
+        // SELECT ( *|<columns> ) FROM <table-name> [WHERE ( arg ) ORDER BY ( ASC/DEC )]
+        // UPDATE <table-name> SET <column-name> = <new-value> [WHERE ( arg )];
+        // DELETE FROM <table-name> [WHERE ( arg )]
+        // INSERT INTO <table-name> VALUES ( arg1, agr2, ... ) READY
+        // INDEX ???
     public sealed class Store
     {
         private static Store? instance = null;
@@ -97,9 +110,44 @@ namespace StoreDataManager
             return OperationStatus.Success;
         }
 
-        public OperationStatus DeleteFromTable(string directory, string whereClause)
+        public OperationStatus DeleteFromTable(string DirectoryName, string whereClause) //whereCluse example "ID != 0 && Color = Azul"
         {
+            var tablePath = $@"{CurrentPath}\{DirectoryName}.Table";
+            string[] resultArray = whereClause.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            var ClauseExpresion = new Expression(whereClause);
 
+            for (int i = 0; i < resultArray.Length - 1; i = i + 4)
+            {
+                ClauseExpresion.Parameters[resultArray[i]] = resultArray[i]; //Adds the name of the parameter to be analize
+            }
+
+            bool expresion = (bool)ClauseExpresion.Evaluate(); //whereClause transformed into boolean expresion
+
+            using (FileStream stream = File.Open(tablePath, FileMode.OpenOrCreate))
+            using (BinaryWriter writer = new (stream))
+            {
+                using (BinaryReader reader = new BinaryReader(File.Open(tablePath, FileMode.Open)))
+                {
+                    List<string> ColumnsFormat = new List<string>();
+                    int ColLength = reader.ReadInt32();
+                    for (int i = 0; i < ColLength -1; i++) // Returns a list with the names of the columns, so they can be compared with the rows.
+                    {
+                        try
+                        {
+                            int VarcarNum = reader.ReadInt32();
+                            string column = reader.ReadString();
+                            ColumnsFormat.Add(column);
+                        }
+                        catch
+                        {
+                            string column = reader.ReadString();
+                            ColumnsFormat.Add(column);
+                        }
+                    }
+                }
+
+
+            }
             return OperationStatus.Success;
         }
 
