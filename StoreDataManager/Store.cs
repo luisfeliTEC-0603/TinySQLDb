@@ -17,7 +17,7 @@ namespace StoreDataManager
         // CREAT TABLE <table-name> ( arg, ) READY
         // DROP TABLE <table-name> READY
         // SELECT ( *|<columns> ) FROM <table-name> [WHERE ( arg ) ORDER BY ( ASC/DEC )] READY
-        // UPDATE <table-name> SET <column-name> = <new-value> [WHERE ( arg )];
+        // UPDATE <table-name> SET <column-name> = <new-value> [WHERE ( arg )]; READY
         // DELETE FROM <table-name> [WHERE ( arg )] READY 
         // INSERT INTO <table-name> VALUES ( arg1, agr2, ... ) READY
         // INDEX ???
@@ -99,17 +99,151 @@ namespace StoreDataManager
                 return OperationStatus.Error;
             }
         }
-        public OperationStatus UpdateSentence(string tableName, string[] selectedColumns, string whereClause)
-        {
-            if (whereClause == null)
-            {
+        public OperationStatus Update(string DirectoryName, string[] selectedColumns, string whereClause)
+        {            
+            var tablePath = $@"{CurrentPath}\{DirectoryName}.Table";
+            BinarySearchTree bst = ConvertBinaryToBST(DirectoryName);
+            List<int> RightPadsFormat = IndexStringAndPad(DirectoryName);
+            List<string> ColumnsFormat = GetColumnsFormar(DirectoryName);
+            List<Nodo> AllBSTNodes = bst.GetAllNodes();
+            List<Nodo> ModifiedNodes = new List<Nodo>();
 
+            int ColumnIndex = -1; //This number must change, else error will be inevitable
+
+            for (int i = 0; i < ColumnsFormat.Count(); i++ ) //This will return de index of the column to be modified.
+            {
+                if (selectedColumns[0] == ColumnsFormat[i])
+                {
+                    ColumnIndex = i;
+                } 
+            }
+
+            if (whereClause == null) // It means that all the values on selected column will turn into a new value that will be the same, second 
+            //element of selectedColumns 
+            {
+                for (int i = 0; i < AllBSTNodes.Count() - 1; i++)
+                {   
+                    AllBSTNodes[i].SetAttribute(ColumnIndex, selectedColumns[1]);
+                }
+                CleanBinaryPath(DirectoryName);
+                using (FileStream stream = File.Open(tablePath, FileMode.Append))
+                using (BinaryWriter writer = new (stream))
+                {
+                    for (int i = 0; i < AllBSTNodes.Count(); i++)
+                    {   
+                        for (int j = 0; j < RightPadsFormat.Count() - 1; j += 2 )
+                        {
+                            if (i == RightPadsFormat[j])
+                            {
+                                string StringToWrite = (string)AllBSTNodes[i].GetAttribute(i);
+                                writer.Write(StringToWrite.PadRight(RightPadsFormat[i + 1]));
+                            }
+                            else
+                            {
+                                try
+                                {
+                                    int NumToWrite = (int)AllBSTNodes[i].GetAttribute(i);
+                                    writer.Write(NumToWrite);
+                                }
+                                catch
+                                {
+                                    DateTime Date = (DateTime)AllBSTNodes[i].GetAttribute(i);
+                                    writer.Write(Date.Ticks);
+                                }
+                            }
+                        }
+                    }
+                }
+                return OperationStatus.Success; 
             }
             else
             {
+                string[] resultArray = whereClause.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                var ClauseExpresion = new Expression(whereClause);
 
+                for (int i = 0; i < resultArray.Length - 1; i = i + 4)
+                {
+                    ClauseExpresion.Parameters[resultArray[i]] = resultArray[i]; //Adds the name of the parameter to be analize
+                }
+
+                bool expresion = (bool)ClauseExpresion.Evaluate(); //whereClause transformed into boolean expresion
+                ModifiedNodes = bst.GetNodesThat(expresion, ColumnsFormat);
+                //At this moment we must delete de Modified nodes from the original list of nodes (All Bts nodes)
+                for (int i = 0; i < AllBSTNodes.Count() ; i++ )
+                {
+                    for (int j = 0; j < ModifiedNodes.Count(); j++)
+                    {
+                        if( AllBSTNodes[i] == ModifiedNodes[j])
+                        {
+                            int num = (int)ModifiedNodes[j].GetAttribute(0);
+                            bst.Delete(num);
+                        }
+                    }
+                }
+
+                AllBSTNodes = bst.GetAllNodes(); //This list will not contain the nodes from ModifiedNodes
+
+                for (int i = 0; i < ModifiedNodes.Count() - 1; i++)
+                {   
+                    ModifiedNodes[i].SetAttribute(ColumnIndex, selectedColumns[1]);
+                } // Modification requested done here
+
+                CleanBinaryPath(DirectoryName);
+                using (FileStream stream = File.Open(tablePath, FileMode.Append))
+                using (BinaryWriter writer = new (stream))
+                {
+                    for (int i = 0; i < AllBSTNodes.Count(); i++)
+                    {   
+                        for (int j = 0; j < RightPadsFormat.Count() - 1; j += 2 )
+                        {
+                            if (i == RightPadsFormat[j])
+                            {
+                                string StringToWrite = (string)AllBSTNodes[i].GetAttribute(i);
+                                writer.Write(StringToWrite.PadRight(RightPadsFormat[i + 1]));
+                            }
+                            else
+                            {
+                                try
+                                {
+                                    int NumToWrite = (int)AllBSTNodes[i].GetAttribute(i);
+                                    writer.Write(NumToWrite);
+                                }
+                                catch
+                                {
+                                    DateTime Date = (DateTime)AllBSTNodes[i].GetAttribute(i);
+                                    writer.Write(Date.Ticks);
+                                }
+                            }
+                        }
+                    }
+                    for (int i = 0; i < ModifiedNodes.Count(); i++)
+                    {   
+                        for (int j = 0; j < RightPadsFormat.Count() - 1; j += 2 )
+                        {
+                            if (i == RightPadsFormat[j])
+                            {
+                                string StringToWrite = (string)ModifiedNodes[i].GetAttribute(i);
+                                writer.Write(StringToWrite.PadRight(RightPadsFormat[i + 1]));
+                            }
+                            else
+                            {
+                                try
+                                {
+                                    int NumToWrite = (int)ModifiedNodes[i].GetAttribute(i);
+                                    writer.Write(NumToWrite);
+                                }
+                                catch
+                                {
+                                    DateTime Date = (DateTime)ModifiedNodes[i].GetAttribute(i);
+                                    writer.Write(Date.Ticks);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return OperationStatus.Success;
             }
-            return OperationStatus.Success;
         }
 
         public OperationStatus DeleteFromTable(string DirectoryName, string whereClause) //whereCluse example "ID != 0 && Color = Azul"

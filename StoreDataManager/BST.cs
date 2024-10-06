@@ -45,9 +45,23 @@ namespace BST
             {
                 return Data;
             }
-            if (index > 0 && index < Attributes.Count)
+            if (index < Attributes.Count)
             {
-                return Attributes[index];  // Return the attribute at the given index.
+                return Attributes[index - 1];  // Return the attribute at the given index.
+            }
+            throw new IndexOutOfRangeException("Index out of range.");  // Handle invalid index.
+        }
+
+        public void SetAttribute(int index, object NewValue)
+        {
+            if (index == 0)
+            {  
+                int NewNum = (int)NewValue;
+                Data = NewNum; //Eception for value not to be int needed
+            }
+            if (index < Attributes.Count) //Plus one means 
+            {
+                Attributes[index - 1] = NewValue;  // Return the attribute at the given index.
             }
             throw new IndexOutOfRangeException("Index out of range.");  // Handle invalid index.
         }
