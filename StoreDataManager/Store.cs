@@ -6,6 +6,7 @@ using System.Text;
 using System;
 using System.Data;
 using System.Diagnostics;
+using System.Collections.Generic;
 using NCalc;
 using BST;
 
@@ -15,7 +16,7 @@ namespace StoreDataManager
         // SET <dataBase-name> READY
         // CREAT TABLE <table-name> ( arg, ) READY
         // DROP TABLE <table-name> READY
-        // SELECT ( *|<columns> ) FROM <table-name> [WHERE ( arg ) ORDER BY ( ASC/DEC )]
+        // SELECT ( *|<columns> ) FROM <table-name> [WHERE ( arg ) ORDER BY ( ASC/DEC )] READY
         // UPDATE <table-name> SET <column-name> = <new-value> [WHERE ( arg )];
         // DELETE FROM <table-name> [WHERE ( arg )] READY 
         // INSERT INTO <table-name> VALUES ( arg1, agr2, ... ) READY
@@ -43,7 +44,7 @@ namespace StoreDataManager
         private readonly string SystemCatalogPath;
         private readonly string SystemDatabasesFile;
         private readonly string SystemTablesFile;     
-        private string CurrentPath = null;   
+        private string CurrentPath;   
         
         public Store()
         {
@@ -154,7 +155,7 @@ namespace StoreDataManager
                 {   
                     for (int j = 0; j < RightPadsFormat.Count() - 1; j += 2 )
                     {
-                        if (i == j)
+                        if (i == RightPadsFormat[j])
                         {
                             string StringToWrite = (string)NodosPorEliminar[i].GetAttribute(i);
                             writer.Write(StringToWrite.PadRight(RightPadsFormat[i + 1]));
@@ -268,27 +269,106 @@ namespace StoreDataManager
 
         }
 
-        public OperationStatus Select(string column, string whereClause, string OrderClause)
+        public OperationStatus Select(string DirectoryName, string[] columnEntries, string whereClause, string orderClause)
         {
-            if (OrderClause == null)
+            var tablePath = $@"{CurrentPath}\{DirectoryName}.Table";
+            BinarySearchTree bst = ConvertBinaryToBST(tablePath);
+            List<int> RightPadsFormat = IndexStringAndPad(DirectoryName);
+            List<string> ColumnsFormat = GetColumnsFormar(DirectoryName);
+
+            List<Nodo> SelectedNodes = bst.GetAllNodes();
+
+            try //All columns selected
             {
-                // Creates a default Table called ESTUDIANTES
-                var tablePath = $@"{DataPath}\TESTDB\ESTUDIANTES.Table";
-                using (FileStream stream = File.Open(tablePath, FileMode.OpenOrCreate))
-                using (BinaryReader reader = new (stream))
+                columnEntries[0] = "*";
+                if (whereClause == null)
                 {
-                    // Print the values as a I know exactly the types, but this needs to be done right
-                    Console.WriteLine(reader.ReadInt32());
-                    Console.WriteLine(reader.ReadString());
-                    Console.WriteLine(reader.ReadString());
-                    return OperationStatus.Success;
+                    if (orderClause == null) //Just send all nodes from bst
+                    {
+                        PrintNodesForSelect(DirectoryName, SelectedNodes, ColumnsFormat.Count());
+                        return OperationStatus.Success;
+                    }
+
+                    else //Print bst nodes in order
+                    {
+                        List<Nodo> Arranged = BinarySearchTree.ArrangeNodes(SelectedNodes, orderClause);
+                        PrintNodesForSelect(DirectoryName, Arranged, ColumnsFormat.Count());
+                        return OperationStatus.Success;
+                    }
+                }
+                else
+                {
+                    string[] resultArray = whereClause.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    var ClauseExpresion = new Expression(whereClause);
+
+                    for (int i = 0; i < resultArray.Length - 1; i = i + 4)
+                    {
+                        ClauseExpresion.Parameters[resultArray[i]] = resultArray[i]; //Adds the name of the parameter to be analize
+                    }
+
+                    bool expresion = (bool)ClauseExpresion.Evaluate(); //whereClause transformed into boolean expresion
+
+                    if (orderClause == null) //Returns with no order all nodes that agree with whereClause
+                    { 
+                        List<Nodo> Arranged = bst.GetNodesThat(expresion, ColumnsFormat);
+                        PrintNodesForSelect(DirectoryName, Arranged, ColumnsFormat.Count());
+                        return OperationStatus.Success;
+                    }
+
+                    else //Returns in order all nodes that agree with whereClause
+                    {
+                        List<Nodo> ExpresionNodes = bst.GetNodesThat(expresion, ColumnsFormat);
+                        List<Nodo> Ordered = BinarySearchTree.ArrangeNodes(ExpresionNodes, orderClause);
+                        PrintNodesForSelect(DirectoryName, Ordered, ColumnsFormat.Count());
+                        return OperationStatus.Success;
+                    }
                 }
             }
-            else
+            catch
             {
-                return OperationStatus.Success;
-            }
+                if (whereClause == null)
+                {
+                    if (orderClause == null) //Just send all nodes from bst
+                    {
+                        PrintNodesForSelect(DirectoryName, SelectedNodes, ColumnsFormat.Count());
+                        return OperationStatus.Success;
+                    }
 
+                    else //Print bst nodes in order
+                    {
+                        List<Nodo> Arranged = BinarySearchTree.ArrangeNodes(SelectedNodes, orderClause);
+                        PrintNodesForSelect(DirectoryName, Arranged, ColumnsFormat.Count());
+                        return OperationStatus.Success;
+                    }
+                }
+                else
+                {                    
+                    string[] resultArray = whereClause.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    var ClauseExpresion = new Expression(whereClause);
+
+                    for (int i = 0; i < resultArray.Length - 1; i = i + 4)
+                    {
+                        ClauseExpresion.Parameters[resultArray[i]] = resultArray[i]; //Adds the name of the parameter to be analize
+                    }
+
+                    bool expresion = (bool)ClauseExpresion.Evaluate(); //whereClause transformed into boolean expresion
+
+                    if (orderClause == null)
+                    { 
+                        List<Nodo> ExpresionNodes = bst.GetNodesThat(expresion, ColumnsFormat);
+                        PrintNodesForSelect(DirectoryName, ExpresionNodes, ColumnsFormat.Count());
+                        return OperationStatus.Success;
+                    }
+
+                    else
+                    {
+                        List<Nodo> ExpresionNodes = bst.GetNodesThat(expresion, ColumnsFormat);
+                        List<Nodo> Arranged = BinarySearchTree.ArrangeNodes(ExpresionNodes, orderClause);
+                        PrintNodesForSelect(DirectoryName, Arranged, ColumnsFormat.Count());
+                        return OperationStatus.Success;
+                    }
+                }                
+            }
         }
 
         public int GetVarcharSize(string varcharString)
@@ -422,7 +502,7 @@ namespace StoreDataManager
                     {
                         for (int j = 0; j < VarLenght; j += 2 )
                         {
-                            if (i == j)
+                            if (i == VarcharValues[j])
                             {
                                 int FixedLenght = VarcharValues[j + 1];
                                 string data = new string(reader.ReadChars(FixedLenght));
@@ -473,19 +553,9 @@ namespace StoreDataManager
                     // Write the names of the columns with their size
                     for (int i = 0; i < ColumnsFormat.Count() - 1; i++ )
                     {
-                        for (int j = 0; j < RightPadsFormat.Count() - 1; j += 2)
-                        {
-                            if (i == j)
-                            {
-                                writer.Write(RightPadsFormat[i]);
-                                writer.Write(ColumnsFormat[i].PadRight(RightPadsFormat[i + 1]));
-                            }
-                            break;
-                        }
-                        
                         for (int j = 0; j < RightPadsFormat.Count() - 1; j += 2 )
                         {
-                            if (i == j)
+                            if (i == RightPadsFormat[j])
                             {
                                 writer.Write(RightPadsFormat[i]);
                                 writer.Write(ColumnsFormat[i].PadRight(RightPadsFormat[i + 1]));
@@ -504,6 +574,49 @@ namespace StoreDataManager
                     memoryStream.Seek(0, SeekOrigin.Begin);
                     memoryStream.CopyTo(outputStream);
                 }
+            }
+        }
+
+        public void PrintNodesForSelect(string DirectoryName, List<Nodo> NodesListToPrint, int ColumnsLenght)
+        {
+            var tablePath = $@"{CurrentPath}\{DirectoryName}.Table";
+            int ListLenght = NodesListToPrint.Count();
+            using (FileStream stream = File.Open(tablePath, FileMode.OpenOrCreate))
+            using (BinaryReader reader = new (stream))
+            {
+                for (int i = 0; i < ListLenght - 1; i++) //Tries for eahc node
+                {
+                    for (int j = 0; j < ColumnsLenght - 1; j++) //Writes
+                    {
+                        try
+                        {
+                            int num = (int)NodesListToPrint[i].GetAttribute(j);
+                            Console.Write(num + " ");
+                        }
+                        catch
+                        {
+                            try
+                            {
+                                string Phrase = (string)NodesListToPrint[i].GetAttribute(j);
+                                Console.WriteLine(Phrase + " ");
+                            }
+                            catch
+                            {
+                                try
+                                {
+                                    long ticks = reader.ReadInt64(); 
+                                    DateTime date = new DateTime(ticks);
+                                    Console.WriteLine(date + " ");
+                                }
+                                catch
+                                {
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+                    Console.WriteLine(""); //Leaves to next line so rows dont get mixed
+                }        
             }
         }
     }

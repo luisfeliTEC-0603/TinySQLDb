@@ -254,5 +254,64 @@ namespace BST
                 RecusriveGetAllNodes(nodo.Right, nodos); 
             }
         }
+
+
+
+        public static List<Nodo> ArrangeNodes(List<Nodo> listaNodos, string orden)
+        {
+            // Llama al método recursivo QuickSort
+            return QuickSort(listaNodos, 0, listaNodos.Count - 1, orden);
+        }
+
+        // Método QuickSort recursivo
+        private static List<Nodo> QuickSort(List<Nodo> lista, int low, int high, string orden)
+        {
+            if (low < high)
+            {
+                // Encuentra el índice de partición
+                int pi = Partition(lista, low, high, orden);
+
+                // Llama recursivamente a QuickSort en las dos particiones
+                QuickSort(lista, low, pi - 1, orden);
+                QuickSort(lista, pi + 1, high, orden);
+            }
+
+            return lista;
+        }
+
+        // Método de partición
+        private static int Partition(List<Nodo> lista, int low, int high, string orden)
+        {
+            // Usamos el último elemento como pivote
+            int pivot = Convert.ToInt32(lista[high].GetAttribute(0)); // Convertimos a int
+            int i = (low - 1); // Índice de elementos más pequeños
+
+            for (int j = low; j < high; j++)
+            {
+                // Compara según el orden especificado (ASC o DESC)
+                bool condition = orden == "ASC"
+                    ? Convert.ToInt32(lista[j].GetAttribute(0)) < pivot // Convertimos a int
+                    : Convert.ToInt32(lista[j].GetAttribute(0)) > pivot; // Convertimos a int
+
+                if (condition)
+                {
+                    i++;
+                    // Intercambia lista[i] y lista[j]
+                    Swap(lista, i, j);
+                }
+            }
+
+            // Intercambia el pivote con el elemento que sigue a los más pequeños
+            Swap(lista, i + 1, high);
+            return i + 1;
+        }
+
+        // Método para intercambiar dos nodos en la lista
+        private static void Swap(List<Nodo> lista, int i, int j)
+        {
+            Nodo temp = lista[i];
+            lista[i] = lista[j];
+            lista[j] = temp;
+        }
     }
 }
