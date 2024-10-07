@@ -158,16 +158,7 @@ namespace StoreDataManager
             }
             else
             {
-                string[] resultArray = whereClause.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                var ClauseExpresion = new Expression(whereClause);
-
-                for (int i = 0; i < resultArray.Length - 1; i = i + 4)
-                {
-                    ClauseExpresion.Parameters[resultArray[i]] = resultArray[i]; //Adds the name of the parameter to be analize
-                }
-
-                bool expresion = (bool)ClauseExpresion.Evaluate(); //whereClause transformed into boolean expresion
-                ModifiedNodes = bst.GetNodesThat(expresion, ColumnsFormat);
+                ModifiedNodes = bst.GetNodesThat(whereClause, ColumnsFormat);
                 //At this moment we must delete de Modified nodes from the original list of nodes (All Bts nodes)
                 for (int i = 0; i < AllBSTNodes.Count() ; i++ )
                 {
@@ -254,17 +245,7 @@ namespace StoreDataManager
             List<int> RightPadsFormat = IndexStringAndPad(DirectoryName);
             List<string> ColumnsFormat = GetColumnsFormar(DirectoryName);
 
-            string[] resultArray = whereClause.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            var ClauseExpresion = new Expression(whereClause);
-
-            for (int i = 0; i < resultArray.Length - 1; i = i + 4)
-            {
-                ClauseExpresion.Parameters[resultArray[i]] = resultArray[i]; //Adds the name of the parameter to be analize
-            }
-
-            bool expresion = (bool)ClauseExpresion.Evaluate(); //whereClause transformed into boolean expresion
-
-            List<Nodo> NodosPorEliminar = bst.GetNodesThat(expresion , ColumnsFormat );
+            List<Nodo> NodosPorEliminar = bst.GetNodesThat(whereClause , ColumnsFormat );
 
             for (int i = 0; i < NodosPorEliminar.Count() - 1; i++)
             {
@@ -432,26 +413,16 @@ namespace StoreDataManager
                 }
                 else
                 {
-                    string[] resultArray = whereClause.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    var ClauseExpresion = new Expression(whereClause);
-
-                    for (int i = 0; i < resultArray.Length - 1; i = i + 4)
-                    {
-                        ClauseExpresion.Parameters[resultArray[i]] = resultArray[i]; //Adds the name of the parameter to be analize
-                    }
-
-                    bool expresion = (bool)ClauseExpresion.Evaluate(); //whereClause transformed into boolean expresion
-
                     if (orderClause == null) //Returns with no order all nodes that agree with whereClause
                     { 
-                        List<Nodo> Arranged = bst.GetNodesThat(expresion, ColumnsFormat);
+                        List<Nodo> Arranged = bst.GetNodesThat(whereClause, ColumnsFormat);
                         PrintNodesForSelect(DirectoryName, Arranged, ColumnsFormat.Count());
                         return OperationStatus.Success;
                     }
 
                     else //Returns in order all nodes that agree with whereClause
                     {
-                        List<Nodo> ExpresionNodes = bst.GetNodesThat(expresion, ColumnsFormat);
+                        List<Nodo> ExpresionNodes = bst.GetNodesThat(whereClause, ColumnsFormat);
                         List<Nodo> Ordered = BinarySearchTree.ArrangeNodes(ExpresionNodes, orderClause);
                         PrintNodesForSelect(DirectoryName, Ordered, ColumnsFormat.Count());
                         return OperationStatus.Success;
@@ -477,26 +448,17 @@ namespace StoreDataManager
                 }
                 else
                 {                    
-                    string[] resultArray = whereClause.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    var ClauseExpresion = new Expression(whereClause);
-
-                    for (int i = 0; i < resultArray.Length - 1; i = i + 4)
-                    {
-                        ClauseExpresion.Parameters[resultArray[i]] = resultArray[i]; //Adds the name of the parameter to be analize
-                    }
-
-                    bool expresion = (bool)ClauseExpresion.Evaluate(); //whereClause transformed into boolean expresion
 
                     if (orderClause == null)
                     { 
-                        List<Nodo> ExpresionNodes = bst.GetNodesThat(expresion, ColumnsFormat);
+                        List<Nodo> ExpresionNodes = bst.GetNodesThat(whereClause, ColumnsFormat);
                         PrintNodesForSelect(DirectoryName, ExpresionNodes, ColumnsFormat.Count());
                         return OperationStatus.Success;
                     }
 
                     else
                     {
-                        List<Nodo> ExpresionNodes = bst.GetNodesThat(expresion, ColumnsFormat);
+                        List<Nodo> ExpresionNodes = bst.GetNodesThat(whereClause, ColumnsFormat);
                         List<Nodo> Arranged = BinarySearchTree.ArrangeNodes(ExpresionNodes, orderClause);
                         PrintNodesForSelect(DirectoryName, Arranged, ColumnsFormat.Count());
                         return OperationStatus.Success;

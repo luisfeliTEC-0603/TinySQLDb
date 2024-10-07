@@ -201,14 +201,14 @@ namespace BST
 
 
         // Return nodes that agree with bool
-        public List<Nodo> GetNodesThat(bool expresion, List<string> columns)
+        public List<Nodo> GetNodesThat(string whereClause, List<string> columns)
         {
             var result = new List<Nodo>();
-            GetNodesThatRec(Root, expresion, result, columns);
+            GetNodesThatRec(Root, whereClause, result, columns);
             return result;
         }
 
-        private void GetNodesThatRec(Nodo node, bool expresion, List<Nodo> result, List<string> columns) //This function must tell which nodes
+        private void GetNodesThatRec(Nodo node, string whereClause, List<Nodo> result, List<string> columns) //This function must tell which nodes
         //make the expresion true.
         {
             if (node == null) return;
@@ -244,13 +244,22 @@ namespace BST
                 }
             }
 
-            if (expresion)
+            var expresion = new Expression(whereClause);
+
+            foreach (var key in datos.Keys)
+            {
+                expresion.Parameters[key] = datos[key]; 
+            }
+
+            bool resultExpresion = (bool)expresion.Evaluate(); 
+
+            if (resultExpresion)
             {
                 result.Add(node);
             }
 
-            GetNodesThatRec(node.Left, expresion, result, columns);
-            GetNodesThatRec(node.Right, expresion, result, columns);
+            GetNodesThatRec(node.Left, whereClause, result, columns);
+            GetNodesThatRec(node.Right, whereClause, result, columns);
         }
         public List<Nodo> GetAllNodes() //Return all nodes of tree
         {
