@@ -31,7 +31,7 @@ namespace BinaryTableManager
                     Console.WriteLine($"(PadRight) {columnPadRight[i]}");
 
                     int charCount = (wordLength == -1) ? 50 : wordLength;
-                    columnNames.Add(new string(reader.ReadString().PadRight(charCount).Trim()));
+                    columnNames.Add(new string(reader.ReadChars(charCount)));
                     Console.WriteLine($"{columnNames[i]}");
                 }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
+using BinaryTableManager;
 using NCalc;
 
 
@@ -44,14 +45,15 @@ namespace BST
         {
             if (index == 0)
             {
-                return Data;
+                return Data;  // Return the data when index is 0.
             }
-            if (index < Attributes.Count)
+            if (index > 0 && index <= Attributes.Count)  // Corrected to handle the case where index is in bounds.
             {
                 return Attributes[index - 1];  // Return the attribute at the given index.
             }
             throw new IndexOutOfRangeException("Index out of range.");  // Handle invalid index.
         }
+
 
         public void SetAttribute(int index, object NewValue)
         {
@@ -202,65 +204,77 @@ namespace BST
 
 
         // Return nodes that agree with bool
-        public List<Nodo> GetNodesThat(string whereClause, List<string> columns)
+        public List<Nodo> GetNodesThat(string whereClause, List<ColumnType> columnTypes, List<string> columnNames)
         {
             var result = new List<Nodo>();
-            GetNodesThatRec(Root, whereClause, result, columns);
+            GetNodesThatRec(Root, whereClause, result, columnTypes, columnNames);
             return result;
         }
 
-        private void GetNodesThatRec(Nodo node, string whereClause, List<Nodo> result, List<string> columns) //This function must tell which nodes
-        //make the expresion true.
+        private void GetNodesThatRec(Nodo node, string whereClause, List<Nodo> result, List<ColumnType> columnTypes, List<string> columnNames)
         {
             if (node == null) return;
 
             var datos = new Dictionary<string, object>();
 
-            for (int i = 0; i < columns.Count; i++)
+
+            for (int i = 0; i < columnTypes.Count; i++)
             {
-                try
+                string columnName = columnNames[i].Trim();  
+                switch (columnTypes[i])
                 {
-                    int number = (int)node.GetAttribute(i);
-                    datos[columns[i]] = new List<object> { number };
-                }
-                catch
-                {
-                    try
-                    {
-                        string Data = (string)node.GetAttribute(i);
-                        datos[columns[i]] = new List<object> { Data };
-                    }
-                    catch
-                    {
-                        try
-                        {
-                            DateTime date = (DateTime)node.GetAttribute(i);
-                            datos[columns[i]] = new List<object> { date };
-                        }
-                        catch
-                        {
-                            continue;
-                        }
-                    }
+                    case ColumnType.Integer:
+                        int intValueAttr = (int)node.GetAttribute(i);
+                        datos[columnName] = intValueAttr;
+                        Console.WriteLine($"{columnName}: {intValueAttr}");
+                        break;
+
+                    case ColumnType.String:
+                        string stringValueAttr = ((string)node.GetAttribute(i)).Trim();  
+                        datos[columnName] = stringValueAttr;
+                        Console.WriteLine($"{columnName}: {stringValueAttr}");
+                        break;
+
+                    case ColumnType.DateTime:
+                        DateTime dateValueAttr = (DateTime)node.GetAttribute(i);
+                        datos[columnName] = dateValueAttr;
+                        Console.WriteLine($"{columnName}: {dateValueAttr}");
+                        break;
                 }
             }
 
-            var expresion = new Expression(whereClause);
+            var expression = new NCalc.Expression(whereClause);
 
-            foreach (var key in datos.Keys)
+            foreach (var columnName in datos.Keys)
             {
-                expresion.Parameters[key] = datos[key]; 
+                expression.Parameters[columnName] = datos[columnName];
             }
 
-            bool resultExpresion = (bool)expresion.Evaluate(); 
-
-            if (resultExpresion)
+            Console.WriteLine("Parámetros en la expresión:");
+            foreach (var param in expression.Parameters)
             {
-                result.Add(node);
+                Console.WriteLine($"Clave: '{param.Key}', Valor: {param.Value}, Tipo: {param.Value.GetType()}");
             }
 
-            GetNodesThatRec(node.Left, whereClause, result, columns);
-            GetNodesThatRec(node.Right, whereClause, result, columns);
+            try
+            {
+                bool conditionMet = (bool)expression.Evaluate();
+
+                Console.WriteLine($"Evaluación de expresión resultó en: {conditionMet}");
+
+                if (conditionMet)
+                {
+                    result.Add(node);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al evaluar la expresión: {ex.Message}");
+            }
+
+            // Recursivamente procesar los nodos hijos
+            GetNodesThatRec(node.Left, whereClause, result, columnTypes, columnNames);
+            GetNodesThatRec(node.Right, whereClause, result, columnTypes, columnNames);
         }
         public List<Nodo> GetAllNodes() //Return all nodes of tree
         {

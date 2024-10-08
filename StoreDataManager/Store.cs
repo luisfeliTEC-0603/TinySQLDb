@@ -219,141 +219,15 @@ namespace StoreDataManager
         {
             var tablePath = $@"{CurrentPath}\{DirectoryName}.Table";
 
-            BinarySearchTree bst = ConvertBinaryToBST(DirectoryName);
-            List<int> RightPadsFormat = IndexStringAndPad(DirectoryName);
-            List<string> ColumnsFormat = GetColumnsFormar(DirectoryName);
-
-            List<Nodo> NodosPorEliminar = bst.GetNodesThat(whereClause , ColumnsFormat );
-
-            for (int i = 0; i < NodosPorEliminar.Count() - 1; i++)
-            {
-                try
-                {
-                    int number = (int)NodosPorEliminar[i].GetAttribute(0);
-                    bst.Delete(number);
-                }
-                catch
-                {
-                    continue;
-                }
-               
-            } // at these point the nodes that made the experion true are eliminated now we need to erase the information above columns
-            //Configration and rewrite the data
-            CleanBinaryPath(DirectoryName); //It deletes all table information but the columns arragmentent.
-            List<Nodo> NodesForWriting = bst.GetAllNodes();
-            using (FileStream stream = File.Open(tablePath, FileMode.Append))
-            using (BinaryWriter writer = new (stream))
-            {
-                for (int i = 0; i < NodesForWriting.Count(); i++)
-                {   
-                    for (int j = 0; j < RightPadsFormat.Count() - 1; j += 2 )
-                    {
-                        if (i == j)
-                        {
-                            string StringToWrite = (string)NodosPorEliminar[i].GetAttribute(i);
-                            writer.Write(StringToWrite.PadRight(RightPadsFormat[i + 1]));
-                        }
-                        else
-                        {
-                            try
-                            {
-                                int NumToWrite = (int)NodosPorEliminar[i].GetAttribute(i);
-                                writer.Write(NumToWrite);
-                            }
-                            catch
-                            {
-                                DateTime Date = (DateTime)NodosPorEliminar[i].GetAttribute(i);
-                                writer.Write(Date.Ticks);
-                            }
-                        }
-                    }
-                }
-            }
+            BinarySearchTree bst = new BinarySearchTree();
+            BinaryTreeInitializer.CreateNodesForBST(tablePath, bst, whereClause);
  
             return OperationStatus.Success;
         }
 
         public OperationStatus Select(string DirectoryName, string[] columnEntries, string whereClause, string orderClause)
         {
-            var tablePath = $@"{CurrentPath}\{DirectoryName}.Table";
-            BinarySearchTree bst = ConvertBinaryToBST(tablePath);
-            List<int> RightPadsFormat = IndexStringAndPad(DirectoryName);
-            List<string> ColumnsFormat = GetColumnsFormar(DirectoryName);
-
-            List<Nodo> SelectedNodes = bst.GetAllNodes();
-
-            try //All columns selected
-            {
-                columnEntries[0] = "*";
-                if (whereClause == null)
-                {
-                    if (orderClause == null) //Just send all nodes from bst
-                    {
-                        PrintNodesForSelect(DirectoryName, SelectedNodes, ColumnsFormat.Count());
-                        return OperationStatus.Success;
-                    }
-
-                    else //Print bst nodes in order
-                    {
-                        List<Nodo> Arranged = BinarySearchTree.ArrangeNodes(SelectedNodes, orderClause);
-                        PrintNodesForSelect(DirectoryName, Arranged, ColumnsFormat.Count());
-                        return OperationStatus.Success;
-                    }
-                }
-                else
-                {
-                    if (orderClause == null) //Returns with no order all nodes that agree with whereClause
-                    { 
-                        List<Nodo> Arranged = bst.GetNodesThat(whereClause, ColumnsFormat);
-                        PrintNodesForSelect(DirectoryName, Arranged, ColumnsFormat.Count());
-                        return OperationStatus.Success;
-                    }
-
-                    else //Returns in order all nodes that agree with whereClause
-                    {
-                        List<Nodo> ExpresionNodes = bst.GetNodesThat(whereClause, ColumnsFormat);
-                        List<Nodo> Ordered = BinarySearchTree.ArrangeNodes(ExpresionNodes, orderClause);
-                        PrintNodesForSelect(DirectoryName, Ordered, ColumnsFormat.Count());
-                        return OperationStatus.Success;
-                    }
-                }
-            }
-            catch
-            {
-                if (whereClause == null)
-                {
-                    if (orderClause == null) //Just send all nodes from bst
-                    {
-                        PrintNodesForSelect(DirectoryName, SelectedNodes, ColumnsFormat.Count());
-                        return OperationStatus.Success;
-                    }
-
-                    else //Print bst nodes in order
-                    {
-                        List<Nodo> Arranged = BinarySearchTree.ArrangeNodes(SelectedNodes, orderClause);
-                        PrintNodesForSelect(DirectoryName, Arranged, ColumnsFormat.Count());
-                        return OperationStatus.Success;
-                    }
-                }
-                else
-                {                    
-
-                    if (orderClause == null)
-                    { 
-                        List<Nodo> ExpresionNodes = bst.GetNodesThat(whereClause, ColumnsFormat);
-                        PrintNodesForSelect(DirectoryName, ExpresionNodes, ColumnsFormat.Count());
-                        return OperationStatus.Success;
-                    }
-
-                    else
-                    {
-                        List<Nodo> ExpresionNodes = bst.GetNodesThat(whereClause, ColumnsFormat);
-                        List<Nodo> Arranged = BinarySearchTree.ArrangeNodes(ExpresionNodes, orderClause);
-                        PrintNodesForSelect(DirectoryName, Arranged, ColumnsFormat.Count());
-                        return OperationStatus.Success;
-                    }
-                }                
-            }
+            return OperationStatus.Success;
         }
 
         private int GetVarcharSize(string varcharString)
