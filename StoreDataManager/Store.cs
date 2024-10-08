@@ -185,90 +185,21 @@ namespace StoreDataManager
             return OperationStatus.Success;
         }
 
-        public OperationStatus Insert(string directory, string[] data)
+        public OperationStatus Insert(string directory, string[] data) 
         {
             var tablePath = $@"{CurrentPath}\{directory}.Table";
-            int columnLenght;
-            int dataLength = data.Length;
-
-            // Read column length from the table file
-            using (BinaryReader reader = new BinaryReader(File.Open(tablePath, FileMode.Open)))
+            try
             {
-                columnLenght = reader.ReadInt32();
+                BinaryTableEditor.BinaryInsertRow( data, tablePath);
+                Console.WriteLine("Insertion row initialized");
+                return OperationStatus.Success;
             }
-
-            // Check if the data length matches the column length
-            if (columnLenght != dataLength)
+            catch
             {
-                // Server verification
-                Console.WriteLine($"\nError: Column input mismatch, Table lenght: {columnLenght}");
-
+                Console.WriteLine("Insertion row failed!");
                 return OperationStatus.Error;
             }
 
-            List<int> varcharIndicators  = GetRightPathValues(tablePath);
-            int indicatorLength = varcharIndicators.Count();
-
-            using (FileStream stream = File.Open(tablePath, FileMode.Append))
-            using (BinaryWriter writer = new (stream))
-            {
-                for (int i = 0; i < dataLength - 1; i++)
-                {
-                    bool isVarchar = false;
-                    int varcharSize = 0;
-
-                    // Check if the current column is varchar
-                    for (int j = 0; j < indicatorLength; j += 2)
-                    {
-                        if (i == varcharIndicators[j])
-                        {
-                            isVarchar = true;
-                            varcharSize = varcharIndicators[j + 1];
-                            break;
-                        }
-                    }
-
-                    if (isVarchar)
-                    {
-                        // Write varchar data, padded to the varchar size
-                        string columnData = data[i].Length > varcharSize ? data[i].Substring(0, varcharSize) : data[i].PadRight(varcharSize);
-                        
-                        writer.Write(columnData);
-                    }
-
-                    else
-                    {
-                        try
-                        {
-                            // Try writing as an integer
-                            int columnData = int.Parse(data[i]);
-                            writer.Write(columnData);
-                        }
-                        catch (FormatException)
-                        {
-                            try
-                            {
-                                // Try writing as a DateTime
-                                DateTime date = DateTime.Parse(data[i]);
-                                writer.Write(date.Ticks);
-                            }
-                            catch
-                            {
-                                // Server validation 
-                                Console.WriteLine($"\nError: Invalid data type for column {i + 1}");
-
-                                // Handle invalid data
-                                return OperationStatus.Error;
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Server verification
-            Console.WriteLine($"\nDATA INSERTED INTO {tablePath}");
-
-            return OperationStatus.Success;
         }
 
         public OperationStatus Update(string tableName, string[] selectedColumns, string whereClause)

@@ -31,7 +31,7 @@ namespace BinaryTableManager
                     Console.WriteLine($"(PadRight) {columnPadRight[i]}");
 
                     int charCount = (wordLength == -1) ? 50 : wordLength;
-                    columnNames.Add(new string(reader.ReadChars(charCount)));
+                    columnNames.Add(new string(reader.ReadString().PadRight(charCount).Trim()));
                     Console.WriteLine($"{columnNames[i]}");
                 }
 
@@ -48,10 +48,11 @@ namespace BinaryTableManager
                                 row[i] = reader.ReadInt32();
                                 break;
                             case ColumnType.String:
-                                row[i] = new string(reader.ReadChars(columnPadRight[i])).Trim();
+                                row[i] = new string(reader.ReadString().PadRight(columnPadRight[i])).Trim();
                                 break;
                             case ColumnType.DateTime:
-                                row[i] = DateTime.FromBinary(reader.ReadInt64());
+                                long ticks = reader.ReadInt64(); 
+                                row[i] = new DateTime(ticks);    
                                 break;
                             default:
                                 Console.WriteLine("UnsupportedColumnType");
