@@ -10,7 +10,6 @@
         {
             public static OperationStatus Execute(string sentence)
             {
-
                 string directoryName = null;
                 string[] columnEntries = null;
                 string whereClause = null;
@@ -21,24 +20,43 @@
                 if (sentence.StartsWith("CREATE DATABASE"))
                 {
                     directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
+                    directoryName = directoryName.TrimEnd(';');
+                    
                     return new CreateDataBase().Execute(directoryName);
                 }
 
                 // SET DATABASE SQL sentence
                 if (sentence.StartsWith("SET"))
                 {
-                    directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
+                    directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[1];
+                    directoryName = directoryName.TrimEnd(';');
+                    
                     return new SetDataBase().Execute(directoryName);
                 }
 
                 // DROP TABLE SQL sentence
                 if (sentence.StartsWith("DROP TABLE"))
                 {
-                    directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
+                    directoryName = sentence.TrimEnd(';').Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
                     return new DropTable().Execute(directoryName);
                 }
 
-                // CREATE DATABASE SQL sentence
+                // INSERT INTO SQL sentence
+                if (sentence.StartsWith("INSERT INTO"))
+                {
+                    directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
+                    sentence = sentence.Replace($"INSERT INTO {directoryName} VALUES", "").Trim().TrimEnd(';');
+
+                    if (sentence.StartsWith("(") && sentence.EndsWith(")"))
+                    {
+                        sentence = sentence.Substring(1, sentence.Length - 2).Trim();
+                    }
+
+                    columnEntries = sentence.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                    return new Insert().Execute(directoryName, columnEntries);
+                }
+
+                // CREATE TABLE SQL sentence
                 if (sentence.StartsWith("CREATE TABLE"))
                 {
                     directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
@@ -49,7 +67,9 @@
                         sentence = sentence.Substring(1, sentence.Length - 2).Trim();
                     }
 
-                    columnEntries = sentence.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                    columnEntries = sentence.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(col => col.Trim()).ToArray();                   
+                    // (e.g.) string[] columnEntries = [ "ID INTEGER", "ARGUMENT VARCHAR(30)" ]
+
                     return new CreateTable().Execute(directoryName, columnEntries);
                 }
 
@@ -133,25 +153,34 @@
                     return new Delete().Execute(directoryName, whereClause);
                 }
 
-                // INSERT INTO SQL sentence
-                if (sentence.StartsWith("INSERT INTO"))
+                // Auxiliary Sentence for binary-files 
+                if (sentence.StartsWith("READ BINARY"))
                 {
                     directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
-                    sentence = sentence.Replace($"INSERT INTO {directoryName} VALUES", "").Trim().TrimEnd(';');
+                    directoryName = directoryName.TrimEnd(';');
+                    
+                    return new BinaryFileReader().Execute(directoryName);
 
-                    if (sentence.StartsWith("(") && sentence.EndsWith(")"))
-                    {
-                        sentence = sentence.Substring(1, sentence.Length - 2).Trim();
-                    }
-
-                    columnEntries = sentence.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-                    return new Insert().Execute(directoryName, columnEntries);
                 }
 
                 else
                 {
-                    throw new UnknownSQLSentenceException();
+                    // throw new UnknownSQLSentenceException();
+                    Console.WriteLine($"UnknownSQLSentenceException");
+
+                    return new SetDataBase().Execute("VOID");
                 }
+            }
+
+            private OperationStatus SyntaxVerifier(string sentence)
+            {
+                if (sentence.EndsWith(";"))
+                {
+                    Console.WriteLine($"InavlidSQLSentenceSyntaxis");
+                    return OperationStatus.Error;
+                }
+
+                return OperationStatus.Success;
             }
         }
     }
