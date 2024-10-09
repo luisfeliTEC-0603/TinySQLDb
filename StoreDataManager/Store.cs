@@ -105,6 +105,7 @@ namespace StoreDataManager
             }
             catch 
             {
+                Console.WriteLine("\n!Error : Directory was not found");
                 return OperationStatus.Error;
             }
         }
@@ -117,7 +118,7 @@ namespace StoreDataManager
                 File.Delete(tableName + ".Table");
 
                 // Server verification
-                Console.WriteLine($"\nFILE {tableName}.Table in {CurrentPath} WAS DELETED");
+                Console.WriteLine($"\nFILE {tableName}.Table DELETED IN DIRECTION : {CurrentPath}");
 
                 return OperationStatus.Success;
             }
@@ -190,13 +191,13 @@ namespace StoreDataManager
             var tablePath = $@"{CurrentPath}\{directory}.Table";
             try
             {
-                BinaryTableEditor.BinaryInsertRow( data, tablePath);
-                Console.WriteLine("Insertion row initialized");
+                BinaryTableEditor.BinaryInsertRow(data, tablePath);
+                Console.WriteLine($"\nROW INSERTED IN TABLE : {tablePath}");
                 return OperationStatus.Success;
             }
             catch
             {
-                Console.WriteLine("Insertion row failed!");
+                Console.WriteLine("\n!Error : Row could not be inserted into table");
                 return OperationStatus.Error;
             }
 
@@ -412,7 +413,7 @@ namespace StoreDataManager
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error reading file {tableDirectory}.Table: {ex.Message}");
+                Console.WriteLine($"\n!Error : File {tableDirectory}.Table {ex.Message}");
                 return OperationStatus.Error;
             }
         }

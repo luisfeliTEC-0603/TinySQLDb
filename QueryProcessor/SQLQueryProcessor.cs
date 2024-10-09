@@ -106,21 +106,26 @@
                     sentence = sentence.Replace($"SELECT", "").Trim().TrimEnd(';');
 
                     int fromIndex = sentence.IndexOf("FROM");
+                    int indexWhere = sentence.IndexOf("WHERE");
                     int orderIndex = sentence.IndexOf("ORDER BY");
-                    whereIndex = sentence.IndexOf("WHERE");
-
  
                     string columnString = sentence.Substring(0, fromIndex).Trim();
                     columnEntries = columnString.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
-                    sentence = sentence.Substring(fromIndex + "FROM".Length).Trim();
+                    string afterFrom = sentence.Substring(fromIndex + "FROM".Length).Trim();
+                    directoryName = afterFrom.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[0];
 
-                    directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[0];
-
-                    if (whereIndex != -1)
+                    if (indexWhere != -1 && (orderIndex == -1 || indexWhere < orderIndex))
                     {
-                        whereClause = sentence.Substring(whereIndex + "WHERE".Length).Trim();
-                        sentence = sentence.Substring(0, whereIndex).Trim();
+                        int whereLength = "WHERE".Length;   
+                        if (orderIndex != -1)
+                        {
+                            whereClause = sentence.Substring(indexWhere + whereLength, orderIndex - indexWhere - whereLength).Trim();
+                        }
+                        else
+                        {
+                            whereClause = sentence.Substring(indexWhere + whereLength).Trim();
+                        }
                     }
 
                     if (orderIndex != -1)
@@ -135,8 +140,6 @@
                         {
                             orderClause = "ASC";
                         }
-                        
-                        sentence = sentence.Substring(0, orderIndex).Trim();
                     }
 
                     return new Select().Execute(directoryName, columnEntries, whereClause, orderClause);

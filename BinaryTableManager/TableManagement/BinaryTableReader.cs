@@ -23,19 +23,20 @@ namespace BinaryTableManager.TableManagement
                 int wordLength;
 
                 // Read each column type, padding length, and name
+                Console.WriteLine("\nReader------");
                 for (int i = 0; i < columnCount; i++)
                 {
                     columnTypes.Add((ColumnType)reader.ReadInt32()); // Column type associeted value (int)
+                    Console.WriteLine($"(Type) {columnTypes[i]}");
 
                     wordLength = reader.ReadInt32(); // Padding lenght
                     columnPadRight.Add(wordLength);
+                    Console.WriteLine($"(PadRight) {columnPadRight[i]}");
 
                     int charCount = (wordLength == -1) ? 50 : wordLength; // Determine character count
                     columnNames.Add(new string(reader.ReadChars(charCount))); // Read and store column name
+                    Console.WriteLine($"(Column Title) {columnNames[i]}");
                 }
-                
-                Console.WriteLine("\nReader------");
-                foreach (var title in columnNames){ Console.Write($"{title,-10}"); }
                 Console.WriteLine("----------");
 
                 // Create a schema object from the read information
@@ -64,17 +65,16 @@ namespace BinaryTableManager.TableManagement
 
                             default:
                                 // Handle unsupported column types
-                                Console.WriteLine("!Error : UnsupportedColumnType");
+                                Console.WriteLine("\n!Error : UnsupportedColumnType");
                                 throw new InvalidOperationException($"Unsupported column type find in file");
                         }
-                    }
-                    rows.Add(row); // Add the completed row to the list
 
-                    // Print the row values
-                    foreach (var value in row){ Console.Write($"{value,-20}"); }
-                    Console.WriteLine("----------\n");
+                        Console.WriteLine($"({columnTypes[i]}) {row[i]}");
+                    }
+                    rows.Add(row);
                 }
             }
+            Console.WriteLine("----------\n");
 
             return (schema, rows); // Return the schema and rows
         }
