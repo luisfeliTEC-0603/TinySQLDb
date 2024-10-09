@@ -241,7 +241,7 @@ namespace StoreDataManager
 
             BinarySearchTree bst = new BinarySearchTree();
             BinarySelect.SelectNodes(tablePath, bst, columnEntries, whereClause, orderClause);
- 
+
             return OperationStatus.Success;
         }
 
