@@ -220,7 +220,7 @@ namespace StoreDataManager
             var tablePath = $@"{CurrentPath}\{DirectoryName}.Table";
 
             BinarySearchTree bst = new BinarySearchTree();
-            BinaryTreeInitializer.CreateNodesForBST(tablePath, bst, whereClause);
+            BinaryDelet.DeleteNodes(tablePath, bst, whereClause);
  
             return OperationStatus.Success;
         }

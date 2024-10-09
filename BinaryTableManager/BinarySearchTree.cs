@@ -74,6 +74,11 @@ namespace BST
         {
             return $"Data: {Data}, Attributes: [{string.Join(", ", Attributes)}]";
         }
+
+        public int GetTotalAttributesCount()
+        {
+            return Attributes.Count + 1;
+        }
     }
     
     // Class representing the Binary Search Tree (BST).

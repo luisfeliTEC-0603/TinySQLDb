@@ -3,7 +3,7 @@ namespace BinaryTableManager
 {
     public class BinaryTreeInitializer
     {
-        public static void CreateNodesForBST(string filePath, BinarySearchTree bst, string whereClause)
+        public static List<Nodo> CreateNodesForBST(string filePath, BinarySearchTree bst, string whereClause)
         {
             int columnCount;
             var columnTypes = new List<ColumnType>();
@@ -77,11 +77,7 @@ namespace BinaryTableManager
             }
 
             List<Nodo> AllNodes = bst.GetAllNodes();
-            foreach (Nodo nodo in AllNodes)
-            {
-                Console.WriteLine((int)nodo.GetAttribute(0));
-            }
-
+            return AllNodes;
         }
     }
 }
