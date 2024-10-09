@@ -35,7 +35,7 @@ namespace BinaryTableManager.TableManagement
                 }
                 
                 Console.WriteLine("\nReader------");
-                foreach (var title in columnNames){ Console.Write($"{title,-20}"); }
+                foreach (var title in columnNames){ Console.Write($"{title,-10}"); }
                 Console.WriteLine("----------");
 
                 // Create a schema object from the read information

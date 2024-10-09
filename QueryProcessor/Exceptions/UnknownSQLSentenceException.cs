@@ -7,4 +7,5 @@ using System.Threading.Tasks;
 namespace QueryProcessor.Exceptions
 {
     public class UnknownSQLSentenceException : Exception { }
+    // Exception handling unknown SQL sentences
 }

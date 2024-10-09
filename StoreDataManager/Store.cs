@@ -220,7 +220,7 @@ namespace StoreDataManager
             var tablePath = $@"{CurrentPath}\{DirectoryName}.Table";
 
             BinarySearchTree bst = new BinarySearchTree();
-            BinaryTreeInitializer.CreateNodesForBST(tablePath, bst, whereClause);
+            BinaryDelet.DeleteNodes(tablePath, bst, whereClause);
  
             return OperationStatus.Success;
         }
@@ -472,8 +472,8 @@ namespace StoreDataManager
                 }
             }
         }
-        
-        public void PrintNodesForSelect(string DirectoryName, List<Nodo> NodesListToPrint, int ColumnsLenght)
+    
+         public void PrintNodesForSelect(string DirectoryName, List<Nodo> NodesListToPrint, int ColumnsLenght)
         {
             // Server verification
             Console.WriteLine("Printing BST nodes");

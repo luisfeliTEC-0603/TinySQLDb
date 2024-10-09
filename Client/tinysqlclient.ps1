@@ -7,6 +7,78 @@ param (
 
 $ipEndPoint = [System.Net.IPEndPoint]::new([System.Net.IPAddress]::Parse("127.0.0.1"), 40404)
 
+function Execute-MyQuery {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$QueryFile,  
+        [Parameter(Mandatory = $true)]
+        [int]$Port,  
+        [Parameter(Mandatory = $true)]
+        [string]$IP  
+    )
+
+    # Validar el archivo
+    validateFile -QueryFile $QueryFile
+
+    # Crear el EndPoint
+    $ipEndPoint = Get-EndPoint -IP $IP -Port $Port
+
+    # Leer y procesar el archivo
+    Process-QueryFile -QueryFile $QueryFile -ipEndPoint $ipEndPoint -Port $Port -IP $IP
+}
+
+function validateFile {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$QueryFile 
+    )
+
+    if ([System.IO.Path]::GetExtension($QueryFile) -ne ".tinysql") {
+        Write-Host -ForegroundColor Red "Error: El archivo debe tener la extensión .tinysql."
+        exit 1
+    }
+
+    if (-not (Test-Path $QueryFile)) {
+        Write-Host -ForegroundColor Red "Error: El archivo $QueryFile no existe. Verifique la ruta."
+        exit 1
+    }
+}
+
+function Get-EndPoint {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$IP,
+        [Parameter(Mandatory = $true)]
+        [int]$Port
+    )
+    
+    try {
+        $ipEndPoint = [System.Net.IPEndPoint]::new([System.Net.IPAddress]::Parse($IP), $Port)
+        return $ipEndPoint
+    } catch {
+        Write-Host -ForegroundColor Red "Error: La IP o el puerto son incorrectos."
+        exit 1
+    }
+}
+
+function Process-QueryFile {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$QueryFile,
+        [System.Net.IPEndPoint]$ipEndPoint,
+        [int]$Port,  
+        [string]$IP  
+    )
+
+    Write-Host -ForegroundColor Yellow "Leyendo el archivo de instrucciones: $QueryFile"
+    $lines = Get-Content $QueryFile
+    foreach ($line in $lines) {
+        if (-not [string]::IsNullOrWhiteSpace($line)) {
+            Send-SQLCommand -command $line -ipEndPoint $ipEndPoint -Port $Port -IP $IP
+        }
+    }
+}
+
 function Send-Message {
     param (
         [Parameter(Mandatory=$true)]

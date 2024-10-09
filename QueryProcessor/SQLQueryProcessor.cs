@@ -10,6 +10,12 @@
         {
             public static OperationStatus Execute(string sentence)
             {
+                if (!sentence.EndsWith(";"))
+                {
+                    Console.WriteLine($"\n!Error : InavlidSQLSentenceSyntaxis");
+                    return OperationStatus.Error;
+                }
+
                 string directoryName = null;
                 string[] columnEntries = null;
                 string whereClause = null;
@@ -68,7 +74,6 @@
                     }
 
                     columnEntries = sentence.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(col => col.Trim()).ToArray();                   
-                    // (e.g.) string[] columnEntries = [ "ID INTEGER", "ARGUMENT VARCHAR(30)" ]
 
                     return new CreateTable().Execute(directoryName, columnEntries);
                 }
@@ -160,7 +165,6 @@
                     directoryName = directoryName.TrimEnd(';');
                     
                     return new BinaryFileReader().Execute(directoryName);
-
                 }
 
                 else
@@ -170,17 +174,6 @@
 
                     return new SetDataBase().Execute("VOID");
                 }
-            }
-
-            private OperationStatus SyntaxVerifier(string sentence)
-            {
-                if (sentence.EndsWith(";"))
-                {
-                    Console.WriteLine($"InavlidSQLSentenceSyntaxis");
-                    return OperationStatus.Error;
-                }
-
-                return OperationStatus.Success;
             }
         }
     }
