@@ -43,6 +43,16 @@ namespace StoreDataManager
         
         public Store()
         {
+            // CREAT DATABSE <dataBase-name> READY
+            // SET <dataBase-name> READY
+            // CREAT TABLE <table-name> ( arg, ) READY
+            // DROP TABLE <table-name> READY
+            // SELECT ( *|<columns> ) FROM <table-name> [WHERE ( arg ) ORDER BY ( ASC/DEC )] 
+            // UPDATE <table-name> SET <column-name> = <new-value> [WHERE ( arg )]; 
+            // DELETE FROM <table-name> [WHERE ( arg )] READY 
+            // INSERT INTO <table-name> VALUES ( arg1, agr2, ... ) READY 
+            // INDEX ???
+
             // Base directory of the project
             BaseDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
 
@@ -227,6 +237,11 @@ namespace StoreDataManager
 
         public OperationStatus Select(string DirectoryName, string[] columnEntries, string whereClause, string orderClause)
         {
+            var tablePath = $@"{CurrentPath}\{DirectoryName}.Table";
+
+            BinarySearchTree bst = new BinarySearchTree();
+            BinarySelect.SelectNodes(tablePath, bst, columnEntries, whereClause, orderClause);
+ 
             return OperationStatus.Success;
         }
 

@@ -211,9 +211,17 @@ namespace BST
         // Return nodes that agree with bool
         public List<Nodo> GetNodesThat(string whereClause, List<ColumnType> columnTypes, List<string> columnNames)
         {
-            var result = new List<Nodo>();
-            GetNodesThatRec(Root, whereClause, result, columnTypes, columnNames);
-            return result;
+            if (whereClause != null)
+            {
+                var result = new List<Nodo>();
+                GetNodesThatRec(Root, whereClause, result, columnTypes, columnNames);
+                return result;
+            }
+            else
+            {
+                return GetAllNodes();
+            }
+
         }
 
         private void GetNodesThatRec(Nodo node, string whereClause, List<Nodo> result, List<ColumnType> columnTypes, List<string> columnNames)
@@ -297,8 +305,6 @@ namespace BST
                 RecusriveGetAllNodes(nodo.Right, nodos); 
             }
         }
-
-
 
         public static List<Nodo> ArrangeNodes(List<Nodo> listaNodos, string orden)
         {

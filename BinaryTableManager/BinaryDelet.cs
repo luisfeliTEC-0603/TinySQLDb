@@ -11,8 +11,16 @@ namespace BinaryTableManager
             }
             else
             {
-                List<Nodo> NodesToWirte = BinaryTreeInitializer.CreateNodesForBST(tablePath, bst, whereClause); //This is a list without nodes to be deleted.
+                List<Nodo> ToBeDeleted = BinaryTreeInitializer.CreateNodesForBST(tablePath, bst, whereClause); //This is a list without nodes to be deleted.
+                foreach (Nodo nodo in ToBeDeleted)
+                {
+                    int IndicatorValue = (int)nodo.GetAttribute(0);
+                    bst.Delete(IndicatorValue);
+                }
+                List<Nodo> NodesToWirte = bst.GetAllNodes();
+
                 CleanBinaryTable.CleanPath(tablePath);
+                
                 if (NodesToWirte != null)
                 {
                     foreach (Nodo node in NodesToWirte)

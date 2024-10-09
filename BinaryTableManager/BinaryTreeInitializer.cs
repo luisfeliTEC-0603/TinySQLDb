@@ -70,14 +70,8 @@ namespace BinaryTableManager
                 }
             }
             List<Nodo> ForDeletion = bst.GetNodesThat(whereClause, columnTypes, columnNames );
-            foreach (Nodo nodo in ForDeletion)
-            {
-                int IndicatorValue = (int)nodo.GetAttribute(0);
-                bst.Delete(IndicatorValue);
-            }
 
-            List<Nodo> AllNodes = bst.GetAllNodes();
-            return AllNodes;
+            return ForDeletion;
         }
     }
 }
