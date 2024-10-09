@@ -52,6 +52,7 @@ namespace BinaryTableManager
                                 break;
                             case ColumnType.DateTime:
                                 long ticks = reader.ReadInt64(); 
+                                Console.WriteLine(ticks);
                                 row[i] = new DateTime(ticks);    
                                 break;
                             default:
