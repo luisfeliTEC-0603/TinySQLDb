@@ -56,14 +56,6 @@ namespace BinaryTableManager
                     }
                 }
             }
-
-            // Debugging Output
-            Console.WriteLine("Datos a imprimir:");
-            foreach (var dataItem in DataToPrint)
-            {
-                Console.WriteLine(dataItem); // Verifica que haya datos
-            }
-
             int columnCount;
             var columnTypes = new List<ColumnType>();
             var columnPadRight = new List<int>();
@@ -88,15 +80,6 @@ namespace BinaryTableManager
 
             string DirectoryNameForTXT = GetLastSectionOfPath(filePath);
 
-            // Filtrar columnas a imprimir
-            var filteredColumnNames = columnNames.Where(c => columnEntries.Contains(c)).ToList();
-
-            // Imprimir para depuración
-            Console.WriteLine("Columnas filtradas:");
-            foreach (var column in filteredColumnNames)
-            {
-                Console.WriteLine(column);
-            }
 
             SaveDataToTxt(DirectoryNameForTXT, columnNames, DataToPrint);
         }
@@ -143,20 +126,29 @@ namespace BinaryTableManager
                     }
                 }
 
-                // Escribir los guiones alineados con los encabezados y el contenido
-                writer.WriteLine(string.Join(" ", maxLengths.Select(length => new string('-', length))));
+                // Ajustar los guiones según la longitud del contenido de cada columna
+                List<string> separator = new List<string>();
+                for (int i = 0; i < maxLengths.Count; i++)
+                {
+                    int dashCount = Math.Max(2, maxLengths[i]); // Asegura que al menos haya 2 guiones
+                    separator.Add(new string('-', dashCount));
+                }
+
+                writer.WriteLine(string.Join(" ", separator));
 
                 // Escribir los datos en líneas
                 for (int i = 0; i < data.Count; i += columnNames.Count)
                 {
                     // Obtener una fila de datos
                     var rowData = data.Skip(i).Take(columnNames.Count);
-                    writer.WriteLine(string.Join(" ", rowData));
+                    // Alinear cada dato según la longitud máxima
+                    var alignedRowData = rowData.Select((value, index) => value.PadRight(maxLengths[index]));
+                    writer.WriteLine(string.Join(" ", alignedRowData));
                 }
             }
 
             Console.WriteLine($"Los datos se han guardado en {fullPath}");
         }
-      
+
     }
-}
+}   
