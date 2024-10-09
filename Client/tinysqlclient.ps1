@@ -117,26 +117,40 @@ function Receive-Message {
         $stream.Close()
     }
 }
+
 function Send-SQLCommand {
     param (
         [string]$command
     )
     $client = New-Object System.Net.Sockets.Socket($ipEndPoint.AddressFamily, [System.Net.Sockets.SocketType]::Stream, [System.Net.Sockets.ProtocolType]::Tcp)
     $client.Connect($ipEndPoint)
+
+    $startTime = Get-Date
+    
     $requestObject = [PSCustomObject]@{
-        RequestType = 0;
-        RequestBody = $command
+        RequestType  = 0;
+        RequestBody  = $command
     }
-    Write-Host -ForegroundColor Green "Sending command: $command"
+    Write-Host " "
+    Write-Host "< $command >"
 
     $jsonMessage = ConvertTo-Json -InputObject $requestObject -Compress
     Send-Message -client $client -message $jsonMessage
+    
     $response = Receive-Message -client $client
-
-    Write-Host -ForegroundColor Green "Response received: $response"
     
     $responseObject = ConvertFrom-Json -InputObject $response
-    Write-Output $responseObject
+
     $client.Shutdown([System.Net.Sockets.SocketShutdown]::Both)
     $client.Close()
+
+    $endTime = Get-Date
+    $duration = $endTime - $startTime
+    Write-Host -ForegroundColor Yellow "EXECUTION : $($duration.TotalSeconds)s"
+
+    if ($responseObject.Status -ne 0) {
+        Write-Host -ForegroundColor Red "!ERROR : $($responseObject.ResponseBody)"
+    } else {
+        Write-Host -ForegroundColor Green "SUCCESS : $($responseObject.ResponseBody)"
+    }
 }

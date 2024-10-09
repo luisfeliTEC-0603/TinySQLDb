@@ -31,7 +31,7 @@ namespace ApiInterface.Processors
             {
                 Status = result,
                 Request = this.Request,
-                ResponseBody = result == OperationStatus.Success ? "\nYES! \nThe operation has been a succes :D" : "\nERROR! \nSomething wrong happend :("
+                ResponseBody = result == OperationStatus.Success ? "The operation has been a succes :D" : "Something wrong happend :("
             };
         }
     }
