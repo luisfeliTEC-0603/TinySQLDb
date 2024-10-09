@@ -2,41 +2,46 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace BinaryTableManager
+namespace BinaryTableManager.TableManagement
 {
     public class BinaryTableReader
     {
         public static (TableSchema schema, List<object[]> rows) ReadTable(string filePath)
         {
-            var rows = new List<object[]>();
+            var rows = new List<object[]>(); // List to hold rows of data
             TableSchema schema;
 
             using (FileStream stream = new FileStream(filePath, FileMode.Open))
             using (BinaryReader reader = new BinaryReader(stream))
             {
-                int columnCount = reader.ReadInt32();
+                int columnCount = reader.ReadInt32(); // Read the number of columns
 
+                // Lists to store schema information
                 var columnTypes = new List<ColumnType>(columnCount);
                 var columnPadRight = new List<int>(columnCount);
                 var columnNames = new List<string>(columnCount);
                 int wordLength;
 
+                // Read each column type, padding length, and name
                 for (int i = 0; i < columnCount; i++)
                 {
-                    columnTypes.Add((ColumnType)reader.ReadInt32());
-                    Console.WriteLine($"(Type) {columnTypes[i]}");
+                    columnTypes.Add((ColumnType)reader.ReadInt32()); // Column type associeted value (int)
 
-                    wordLength = reader.ReadInt32();
+                    wordLength = reader.ReadInt32(); // Padding lenght
                     columnPadRight.Add(wordLength);
-                    Console.WriteLine($"(PadRight) {columnPadRight[i]}");
 
-                    int charCount = (wordLength == -1) ? 50 : wordLength;
-                    columnNames.Add(new string(reader.ReadChars(charCount)));
-                    Console.WriteLine($"{columnNames[i]}");
+                    int charCount = (wordLength == -1) ? 50 : wordLength; // Determine character count
+                    columnNames.Add(new string(reader.ReadChars(charCount))); // Read and store column name
                 }
+                
+                Console.WriteLine("\nReader------");
+                foreach (var title in columnNames){ Console.Write($"{title,-20}"); }
+                Console.WriteLine("----------");
 
+                // Create a schema object from the read information
                 schema = new TableSchema(columnNames.ToArray(), columnTypes.ToArray(), columnPadRight.ToArray());
 
+                // Read rows of data until the end of the stream
                 while (reader.BaseStream.Position != reader.BaseStream.Length)
                 {
                     var row = new object[columnCount];
@@ -45,29 +50,33 @@ namespace BinaryTableManager
                         switch (columnTypes[i])
                         {
                             case ColumnType.Integer:
-                                row[i] = reader.ReadInt32();
+                                row[i] = reader.ReadInt32(); // Read an integer
                                 break;
+
                             case ColumnType.String:
                                 row[i] = new string(reader.ReadString().PadRight(columnPadRight[i])).Trim();
                                 break;
+
                             case ColumnType.DateTime:
                                 long ticks = reader.ReadInt64(); 
-                                Console.WriteLine(ticks);
-                                row[i] = new DateTime(ticks);    
+                                row[i] = new DateTime(ticks); // Convert ticks to DateTime
                                 break;
+
                             default:
-                                Console.WriteLine("UnsupportedColumnType");
-                                throw new InvalidOperationException("Unsupported column type.");
+                                // Handle unsupported column types
+                                Console.WriteLine("!Error : UnsupportedColumnType");
+                                throw new InvalidOperationException($"Unsupported column type find in file");
                         }
                     }
-                    rows.Add(row);
+                    rows.Add(row); // Add the completed row to the list
 
+                    // Print the row values
                     foreach (var value in row){ Console.Write($"{value,-20}"); }
-                    Console.WriteLine();
+                    Console.WriteLine("----------\n");
                 }
             }
 
-            return (schema, rows);
+            return (schema, rows); // Return the schema and rows
         }
     }
 }

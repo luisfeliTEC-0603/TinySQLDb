@@ -8,8 +8,8 @@ using System.Data;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using NCalc;
-using BinaryTableManager;
-using BST;
+using BinaryTableManager.TableManagement;
+using BinaryTableManager.TreeStructure;
 
 namespace StoreDataManager
 {
