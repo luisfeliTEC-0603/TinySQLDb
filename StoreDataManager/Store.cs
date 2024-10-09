@@ -472,8 +472,8 @@ namespace StoreDataManager
                 }
             }
         }
-    
-         public void PrintNodesForSelect(string DirectoryName, List<Nodo> NodesListToPrint, int ColumnsLenght)
+        
+        public void PrintNodesForSelect(string DirectoryName, List<Nodo> NodesListToPrint, int ColumnsLenght)
         {
             // Server verification
             Console.WriteLine("Printing BST nodes");

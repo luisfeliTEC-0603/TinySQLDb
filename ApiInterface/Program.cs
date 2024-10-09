@@ -1,3 +1,3 @@
 ﻿using ApiInterface;
 
-await Server.Start();
+await Server.Start(); // The Server is asynchronously started

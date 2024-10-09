@@ -10,6 +10,7 @@ namespace ApiInterface.Processors
 {
     internal interface IProcessor
     {
+        // Method to process a request and return a Response object
         Response Process();
     }
 }

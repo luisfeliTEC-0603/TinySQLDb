@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ApiInterface.Exceptions
+﻿namespace ApiInterface.Exceptions
 {
-    internal class UnknowRequestTypeException : Exception
-    {
-    }
+    internal class UnknowRequestTypeException : Exception { }
+    // Exception for unsupported request type
 }
