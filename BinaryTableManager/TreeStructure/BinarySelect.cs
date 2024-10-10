@@ -147,16 +147,17 @@ namespace BinaryTableManager.TreeStructure
                     writer.WriteLine(string.Join(" ", alignedRowData));
                 }
             }
-            FormatTable(fullPath);
+            FormatTable(fullPath, columnTypes);
             Console.WriteLine($"Los datos se han guardado en {fullPath}");
         }
 
-        public static void FormatTable(string filePath)
+        public static void FormatTable(string filePath, List<ColumnType> columnTypes)
         {
             string[] lines = File.ReadAllLines(filePath);
 
             // Leer encabezados
             string[] headers = lines[0].Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            int headerLenght = headers.Length;
             var tableData = new string[lines.Length - 2][];
 
             // Ignorar la segunda línea de guiones y procesar las filas restantes
@@ -174,14 +175,14 @@ namespace BinaryTableManager.TreeStructure
             using (StreamWriter writer = new StreamWriter(filePath))
             {
                 // Escribir encabezados
-                for (int i = 0; i < headers.Length; i++)
+                for (int i = 0; i < headerLenght; i++)
                 {
                     writer.Write(headers[i].PadRight(columnWidths[i] + 1));
                 }
                 writer.WriteLine();
 
                 // Escribir separadores de guiones
-                for (int i = 0; i < columnWidths.Length; i++)
+                for (int i = 0; i < headerLenght; i++)
                 {
                     writer.Write(new string('-', columnWidths[i]).PadRight(columnWidths[i] + 1));
                 }
@@ -190,7 +191,7 @@ namespace BinaryTableManager.TreeStructure
                 // Escribir filas de la tabla
                 foreach (var row in tableData)
                 {
-                    for (int i = 0; i < row.Length; i++)
+                    for (int i = 0; i < headerLenght; i++)
                     {
                         writer.Write(row[i].PadRight(columnWidths[i] + 1));
                     }

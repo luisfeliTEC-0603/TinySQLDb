@@ -60,7 +60,7 @@ namespace BinaryTableManager.TreeStructure
 
                             case ColumnType.DateTime:
                                 long ticks = reader.ReadInt64(); 
-                                attributesForNode.Add(new DateTime(ticks));    
+                                attributesForNode.Add(new DateTime(ticks));
                                 break;
 
                             default:
