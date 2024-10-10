@@ -91,7 +91,7 @@
                     {
                         columnEntries = sentence.Split(new[] { ',','=' }, StringSplitOptions.RemoveEmptyEntries);
                     }
-
+                    Console.WriteLine("Where clause es: " + whereClause);
                     return new Update().Execute(directoryName, columnEntries, whereClause);
                     }
 

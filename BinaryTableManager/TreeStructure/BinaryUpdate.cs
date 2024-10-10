@@ -1,9 +1,9 @@
-using BST;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using BinaryTableManager.TableManagement;
 
-namespace BinaryTableManager
+namespace BinaryTableManager.TreeStructure
 {
     public class BinaryUpdate
     {

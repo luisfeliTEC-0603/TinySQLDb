@@ -45,50 +45,52 @@ function Receive-Message {
         $stream.Close()
     }
 }
+
 function Send-SQLCommand {
     param (
         [string]$command
     )
-
-    # Crear y conectar el cliente socket
     $client = New-Object System.Net.Sockets.Socket($ipEndPoint.AddressFamily, [System.Net.Sockets.SocketType]::Stream, [System.Net.Sockets.ProtocolType]::Tcp)
     $client.Connect($ipEndPoint)
-    
-    # Crear objeto de solicitud
-    $requestObject = [PSCustomObject]@{
-        RequestType = 0;
-        RequestBody = $command
-    }
-    Write-Host -ForegroundColor Green "Sending command: $command"
 
-    # Convertir la solicitud en JSON
+    $startTime = Get-Date
+    
+    $requestObject = [PSCustomObject]@{
+        RequestType  = 0;
+        RequestBody  = $command
+    }
+    Write-Host " "
+    Write-Host "< $command >"
+
     $jsonMessage = ConvertTo-Json -InputObject $requestObject -Compress
     Send-Message -client $client -message $jsonMessage
-
-    # Recibir respuesta
+    
     $response = Receive-Message -client $client
-    Write-Host -ForegroundColor Green "Response received: $response"
-
-    # Procesar la respuesta
+    
     $responseObject = ConvertFrom-Json -InputObject $response
-    Write-Output $responseObject
 
-    # Si el comando es SELECT, llamar a Print-SQLTable
-    if ($command -like "SELECT*") {
-        Write-Host -ForegroundColor Yellow "Executing SELECT command, preparing to print table..."
-
-        # Ruta del archivo que contiene los datos de la tabla
-        $filePath = "C:\Users\ejcan\Desktop\U\FSC\Proyecto 2\TinySQLDb\SavedTables\DataToPrint.txt"
-
-        # Llamar a la función para imprimir la tabla
-        Print-SQLTable -filePath $filePath
-    }
-
-    # Cerrar el socket
     $client.Shutdown([System.Net.Sockets.SocketShutdown]::Both)
     $client.Close()
-}
 
+    $endTime = Get-Date
+    $duration = $endTime - $startTime
+    Write-Host -ForegroundColor Yellow "EXECUTION : $($duration.TotalSeconds)s"
+
+    if ($responseObject.Status -ne 0) {
+        Write-Host -ForegroundColor Red "!ERROR : $($responseObject.ResponseBody)"
+    } else {
+        Write-Host -ForegroundColor Green "SUCCESS : $($responseObject.ResponseBody)"
+        Write-Host " "
+        
+        if ($command -like "SELECT*") {
+            Write-Host -ForegroundColor Yellow "[ EXECUTING TABLE ]"
+    
+            $filePath = "C:\Users\ejcan\Desktop\U\FSC\Proyecto 2\TinySQLDb\SavedTables\DataToPrint.txt"
+    
+            Print-SQLTable -filePath $filePath
+        }
+    }
+}
 
 function Print-SQLTable {
     param (

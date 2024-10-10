@@ -1,4 +1,4 @@
-﻿using ApiInterface.InternalModels;
+﻿﻿using ApiInterface.InternalModels;
 using ApiInterface.Models;
 using System;
 using System.Collections.Generic;
@@ -10,6 +10,7 @@ namespace ApiInterface.Processors
 {
     internal interface IProcessor
     {
+        // Method to process a request and return a Response object
         Response Process();
     }
 }

@@ -1,5 +1,5 @@
-using BST;
-namespace BinaryTableManager
+using BinaryTableManager.TreeStructure;
+namespace BinaryTableManager.TableManagement
 {
     public class BinaryDelet
     {

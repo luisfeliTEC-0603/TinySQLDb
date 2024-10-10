@@ -1,4 +1,4 @@
-﻿using ApiInterface.Exceptions;
+﻿﻿using ApiInterface.Exceptions;
 using ApiInterface.InternalModels;
 using System;
 using System.Collections.Generic;
@@ -12,10 +12,16 @@ namespace ApiInterface.Processors
     {
         internal static IProcessor Create(Request request)
         {
+            // Validates the type of request for SQL-Sentences
             if (request.RequestType is RequestType.SQLSentence)
             {
                 return new SQLSentenceProcessor(request);
             }
+
+            // Server verification 
+            Console.WriteLine($"\n!Error : Something went wrong...");
+
+            // Throws an exception if the request type is unknown
             throw new UnknowRequestTypeException();
         }
     }
