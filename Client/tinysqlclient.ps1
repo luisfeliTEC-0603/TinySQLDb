@@ -1,11 +1,58 @@
-param (
-    [Parameter(Mandatory = $true)]
-    [string]$IP,
-    [Parameter(Mandatory = $true)]
-    [int]$Port
-)
+function Execute-MyQuery {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$QueryFile,  
+        [Parameter(Mandatory = $true)]
+        [int]$Port,  
+        [Parameter(Mandatory = $true)]
+        [string]$IP  
+    )
 
-$ipEndPoint = [System.Net.IPEndPoint]::new([System.Net.IPAddress]::Parse("127.0.0.1"), 40404)
+    validateFile -QueryFile $QueryFile
+
+    try {
+        $ipEndPoint = [System.Net.IPEndPoint]::new([System.Net.IPAddress]::Parse($IP), $Port)
+    } catch {
+        Write-Host -ForegroundColor Red "!Error : Could make the connection"
+        exit 1
+    }
+
+    Process-QueryFile -QueryFile $QueryFile -Port $Port -IP $IP
+}
+
+function validateFile {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$QueryFile 
+    )
+
+    if ([System.IO.Path]::GetExtension($QueryFile) -ne ".tinysql") {
+        Write-Host -ForegroundColor Red "!Error : The file does not count with the required extension (.tinysql)"
+        exit 1
+    }
+
+    if (-not (Test-Path $QueryFile)) {
+        Write-Host -ForegroundColor Red "!Error: The file $QueryFile does not exist"
+        exit 1
+    }
+}
+
+function Process-QueryFile {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$QueryFile,
+        [int]$Port,  
+        [string]$IP  
+    )
+
+    Write-Host -ForegroundColor Magenta "[ LOADING $QueryFile ... ]"
+    $lines = Get-Content $QueryFile
+    foreach ($line in $lines) {
+        if (-not [string]::IsNullOrWhiteSpace($line)) {
+            Send-SQLCommand -command $line
+        }
+    }
+}
 
 function Send-Message {
     param (
@@ -77,13 +124,13 @@ function Send-SQLCommand {
     Write-Host -ForegroundColor Yellow "EXECUTION : $($duration.TotalSeconds)s"
 
     if ($responseObject.Status -ne 0) {
-        Write-Host -ForegroundColor Red "!ERROR : $($responseObject.ResponseBody)"
+        Write-Host -ForegroundColor Red "!ERROR : Something went wrong :("
     } else {
         Write-Host -ForegroundColor Green "SUCCESS : $($responseObject.ResponseBody)"
-        Write-Host " "
         
         if ($command -like "SELECT*") {
-            Write-Host -ForegroundColor Yellow "[ EXECUTING TABLE ]"
+            Write-Host -ForegroundColor Blue "[ EXECUTING TABLE ]"
+            Write-Host " "
     
             $filePath = "C:\Users\ejcan\Desktop\U\FSC\Proyecto 2\TinySQLDb\SavedTables\DataToPrint.txt"
     
@@ -98,16 +145,13 @@ function Print-SQLTable {
         [string]$filePath
     )
 
-    # Verificar si el archivo existe
     if (-Not (Test-Path -Path $filePath)) {
-        Write-Host "El archivo $filePath no existe." -ForegroundColor Red
+        Write-Host "!Error : $filePath is not found" -ForegroundColor Red
         return
     }
 
-    # Leer todo el contenido del archivo
     $fileContent = Get-Content -Path $filePath
 
-    # Imprimir el contenido tal como está, respetando el formato del archivo
     foreach ($line in $fileContent) {
         Write-Host $line
     }
