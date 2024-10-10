@@ -81,7 +81,7 @@ namespace BinaryTableManager
             string DirectoryNameForTXT = GetLastSectionOfPath(filePath);
 
 
-            SaveDataToTxt(DirectoryNameForTXT, columnNames, DataToPrint);
+            SaveDataToTxt(DirectoryNameForTXT, columnNames, DataToPrint, columnEntries, columnTypes);
         }
 
         static string GetLastSectionOfPath(string path)
@@ -95,60 +95,75 @@ namespace BinaryTableManager
 
             return path.Substring(lastBackslashIndex + 1);
         }
-        static void SaveDataToTxt(string fileName, List<string> columnNames, List<string> data)
+static void SaveDataToTxt(string fileName, List<string> columnNames, List<string> data, string[] columnEntries, List<ColumnType> columnTypes)
+{
+    string path = @"C:\Users\ejcan\Desktop\U\FSC\Proyecto 2\TinySQLDb\SavedTables";
+    Directory.CreateDirectory(path);
+    string fullPath = Path.Combine(path, fileName);
+
+    // Verificar si el primer elemento de columnEntries es "*"
+    List<int> selectedColumnIndices;
+    if (columnEntries.Length > 0 && columnEntries[0] == "*")
+    {
+        // Si es "*", seleccionar todas las columnas
+        Console.WriteLine("Se seleccionaron todas las columnas.");
+        selectedColumnIndices = Enumerable.Range(0, columnNames.Count).ToList();
+    }
+    else
+    {
+        // Seleccionar índices de columnas según los encabezados
+        selectedColumnIndices = columnNames
+            .Select((col, index) => new { col, index })
+            .Where(x => columnEntries.Any(entry => x.col.StartsWith(entry)))
+            .Select(x => x.index)
+            .ToList();
+    }
+
+    using (StreamWriter writer = new StreamWriter(fullPath))
+    {
+        // Escribir encabezados
+        writer.WriteLine(string.Join(" ", selectedColumnIndices.Select(index => columnNames[index])));
+
+        // Inicializar longitudes máximas de columnas según encabezados
+        List<int> maxLengths = selectedColumnIndices.Select(index => columnNames[index].Length).ToList();
+
+        // Calcular longitudes máximas para los datos de las columnas seleccionadas
+        for (int rowIndex = 0; rowIndex < data.Count; rowIndex += columnNames.Count)
         {
-            // Definir la ruta donde se guardará el archivo
-            string path = @"C:\Users\ejcan\Desktop\U\FSC\Proyecto 2\TinySQLDb\SavedTables";
-
-            // Asegurarse de que la carpeta existe
-            Directory.CreateDirectory(path);
-
-            // Construir la ruta completa del archivo
-            string fullPath = Path.Combine(path, fileName);
-
-            using (StreamWriter writer = new StreamWriter(fullPath))
+            for (int colIndex = 0; colIndex < selectedColumnIndices.Count; colIndex++)
             {
-                // Escribir los nombres de las columnas
-                writer.WriteLine(string.Join(" ", columnNames));
+                int columnIndex = selectedColumnIndices[colIndex];
 
-                // Calcular la longitud máxima de cada columna
-                List<int> maxLengths = new List<int>(columnNames.Select(c => c.Length));
-
-                // Calcular la longitud máxima de los datos por columna
-                for (int i = 0; i < data.Count; i += columnNames.Count)
+                // Asegurarse de no exceder el tamaño de la lista de datos
+                if (rowIndex + columnIndex < data.Count)
                 {
-                    for (int j = 0; j < columnNames.Count; j++)
-                    {
-                        if (i + j < data.Count) // Verificar que no exceda el rango
-                        {
-                            maxLengths[j] = Math.Max(maxLengths[j], data[i + j].Length);
-                        }
-                    }
-                }
-
-                // Ajustar los guiones según la longitud del contenido de cada columna
-                List<string> separator = new List<string>();
-                for (int i = 0; i < maxLengths.Count; i++)
-                {
-                    int dashCount = Math.Max(2, maxLengths[i]); // Asegura que al menos haya 2 guiones
-                    separator.Add(new string('-', dashCount));
-                }
-
-                writer.WriteLine(string.Join(" ", separator));
-
-                // Escribir los datos en líneas
-                for (int i = 0; i < data.Count; i += columnNames.Count)
-                {
-                    // Obtener una fila de datos
-                    var rowData = data.Skip(i).Take(columnNames.Count);
-                    // Alinear cada dato según la longitud máxima
-                    var alignedRowData = rowData.Select((value, index) => value.PadRight(maxLengths[index]));
-                    writer.WriteLine(string.Join(" ", alignedRowData));
+                    // Verificar el tipo de columna
+                    maxLengths[colIndex] = Math.Max(maxLengths[colIndex], data[rowIndex + columnIndex].Length);
                 }
             }
-
-            Console.WriteLine($"Los datos se han guardado en {fullPath}");
         }
+
+        // Crear el separador usando las longitudes de `selectedColumnIndices`
+        List<string> separator = maxLengths.Select(length => new string('-', length)).ToList();
+        writer.WriteLine(string.Join(" ", separator));
+
+        // Escribir los datos alineados
+        for (int rowIndex = 0; rowIndex < data.Count; rowIndex += columnNames.Count)
+        {
+            List<string> alignedRowData = new List<string>();
+
+            for (int colIndex = 0; colIndex < selectedColumnIndices.Count; colIndex++)
+            {
+                int columnIndex = selectedColumnIndices[colIndex];
+                string value = (rowIndex + columnIndex < data.Count) ? data[rowIndex + columnIndex] : string.Empty;
+                alignedRowData.Add(value.PadRight(maxLengths[colIndex])); // Alineación correcta
+            }
+            writer.WriteLine(string.Join(" ", alignedRowData));
+        }
+    }
+
+    Console.WriteLine($"Los datos se han guardado en {fullPath}");
+}
 
     }
 }   
