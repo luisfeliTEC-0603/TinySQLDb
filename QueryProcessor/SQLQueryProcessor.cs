@@ -32,9 +32,9 @@
                 }
 
                 // SET DATABASE SQL sentence
-                if (sentence.StartsWith("SET"))
+                if (sentence.StartsWith("SET DATABSE"))
                 {
-                    directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[1];
+                    directoryName = sentence.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
                     directoryName = directoryName.TrimEnd(';');
                     
                     return new SetDataBase().Execute(directoryName);
@@ -90,11 +90,11 @@
                     {
                         string columnAssignments = sentence.Substring(0, whereIndex).Trim();
                         whereClause = sentence.Substring(whereIndex + "WHERE".Length).Trim();
-                        columnEntries = columnAssignments.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                        columnEntries = columnAssignments.Split(new[] { ',','=' }, StringSplitOptions.RemoveEmptyEntries);
                     }
                     else
                     {
-                        columnEntries = sentence.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                        columnEntries = sentence.Split(new[] { ',','=' }, StringSplitOptions.RemoveEmptyEntries);
                     }
 
                     return new Update().Execute(directoryName, columnEntries, whereClause);
