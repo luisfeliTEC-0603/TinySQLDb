@@ -78,23 +78,9 @@ namespace BinaryTableManager
                 }
             }
 
-            string DirectoryNameForTXT = GetLastSectionOfPath(filePath);
-
-
-            SaveDataToTxt(DirectoryNameForTXT, columnNames, DataToPrint, columnEntries, columnTypes);
+            SaveDataToTxt("DataToPrint.txt", columnNames, DataToPrint, columnEntries, columnTypes);
         }
 
-        static string GetLastSectionOfPath(string path)
-        {
-            int lastBackslashIndex = path.LastIndexOf('\\');
-
-            if (lastBackslashIndex == -1)
-            {
-                return path;
-            }
-
-            return path.Substring(lastBackslashIndex + 1);
-        }
         static void SaveDataToTxt(string fileName, List<string> columnNames, List<string> data, string[] columnEntries, List<ColumnType> columnTypes)
         {
             string path = @"C:\Users\ejcan\Desktop\U\FSC\Proyecto 2\TinySQLDb\SavedTables";

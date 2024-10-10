@@ -1,0 +1,6 @@
+id Nacio         num 
+-- ------------- --- 
+13 ASDHJ         1   
+14 Bobo          1   
+15 Bobo          1   
+18 MELLAMOFELIPE 1   
