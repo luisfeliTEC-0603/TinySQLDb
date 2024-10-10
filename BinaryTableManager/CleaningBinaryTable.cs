@@ -39,7 +39,6 @@ public class CleanBinaryTable
         {
             memoryStream.Seek(0, SeekOrigin.Begin);
             memoryStream.CopyTo(outputStream);
-            Console.WriteLine("Datos escritos con éxito en el archivo.");
         }
         
         using (FileStream stream = new FileStream(tablePath, FileMode.Create))

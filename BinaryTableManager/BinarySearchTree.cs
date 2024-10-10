@@ -17,7 +17,7 @@ namespace BST
 
         // Constructor that initializes the node with data and a list of attributes.
         // Only string, int, or DateTime attributes are allowed.
-        public Nodo(int data, List<object> attributes)
+        public Nodo(int data, List<object> attributes) //[ID, Color, Marca]
         {
             Data = data;
             Attributes = new List<object>();
@@ -62,11 +62,10 @@ namespace BST
                 int NewNum = (int)NewValue;
                 Data = NewNum; //Eception for value not to be int needed
             }
-            if (index < Attributes.Count) //Plus one means 
+            if (index <= GetTotalAttributesCount()) //Plus one means 
             {
                 Attributes[index - 1] = NewValue;  // Return the attribute at the given index.
             }
-            throw new IndexOutOfRangeException("Index out of range.");  // Handle invalid index.
         }
 
         // Override the ToString() method to display node data and its attributes.

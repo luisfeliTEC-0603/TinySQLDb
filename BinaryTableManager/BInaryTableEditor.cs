@@ -18,15 +18,12 @@ namespace BinaryTableManager
                 for (int i = 0; i < columnCount; i++)
                 {
                     columnTypes.Add((ColumnType)reader.ReadInt32());
-                    Console.WriteLine($"(Type) {columnTypes[i]}");
 
                     wordLength = reader.ReadInt32();
                     columnPadRight.Add(wordLength);
-                    Console.WriteLine($"(PadRight) {columnPadRight[i]}");
 
                     int charCount = (wordLength == -1) ? 50 : wordLength;
                     columnNames.Add(new string(reader.ReadChars(charCount)));
-                    Console.WriteLine($"{columnNames[i]}");
                 }
             }
 
@@ -35,7 +32,6 @@ namespace BinaryTableManager
             {
                 for (int i = 0; i < columnEntries.Length; i++)
                 {
-                        Console.WriteLine("Adding data");
                         switch (columnTypes[i])
                         {
                             case ColumnType.Integer:

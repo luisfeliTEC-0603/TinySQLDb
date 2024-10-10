@@ -211,17 +211,15 @@ namespace StoreDataManager
             }
 
         }
-
-        public OperationStatus Update(string tableName, string[] selectedColumns, string whereClause)
+/// UPDATE <table-name> 
+/// SET <column-name> = <new-value> 
+/// [WHERE where-statement] 
+        public OperationStatus Update(string DirectoryName, string[] selectedColumns, string whereClause)
         {
-            if (whereClause == null)
-            {
+            var tablePath = $@"{CurrentPath}\{DirectoryName}.Table";
 
-            }
-            else
-            {
-
-            }
+            BinarySearchTree bst = new BinarySearchTree();
+            BinaryUpdate.UpdateRows(tablePath, bst, whereClause, selectedColumns);
             return OperationStatus.Success;
         }
 

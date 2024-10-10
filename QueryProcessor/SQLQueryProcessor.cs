@@ -85,17 +85,17 @@
                     {
                         string columnAssignments = sentence.Substring(0, whereIndex).Trim();
                         whereClause = sentence.Substring(whereIndex + "WHERE".Length).Trim();
-                        columnEntries = columnAssignments.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                        columnEntries = columnAssignments.Split(new[] { ',','=' }, StringSplitOptions.RemoveEmptyEntries);
                     }
                     else
                     {
-                        columnEntries = sentence.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                        columnEntries = sentence.Split(new[] { ',','=' }, StringSplitOptions.RemoveEmptyEntries);
                     }
 
                     return new Update().Execute(directoryName, columnEntries, whereClause);
-                }
+                    }
 
-// SELECT SQL sentence
+                // SELECT SQL sentence
                 if (sentence.StartsWith("SELECT"))
                 {
                     sentence = sentence.Replace($"SELECT", "").Trim().TrimEnd(';');
@@ -138,7 +138,7 @@
                     }
 
                     return new Select().Execute(directoryName, columnEntries, whereClause, orderClause);
-                }
+                }
 
                 // DELETE FROM SQL sentence
                 if (sentence.StartsWith("DELETE FROM"))
