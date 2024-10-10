@@ -11,7 +11,35 @@ namespace BinaryTableManager
         {
             if (whereClause == null)
             {
+                List<Nodo> NodesToModify = BinaryTreeInitializer.CreateNodesForBST(tablePath, bst, null); 
+                foreach (Nodo node in NodesToModify)
+                {
+                    List<object> AtrbiuteList = new List<object>();
+                    for (int i = 1; i < node.GetTotalAttributesCount(); i++)
+                    {
+                        AtrbiuteList.Add(node.GetAttribute(i));
+                    }
+                    bst.Add((int)node.GetAttribute(0), AtrbiuteList);
+                }
 
+                CleanBinaryTable.CleanPath(tablePath);
+
+                List<Nodo> NodesToWirte = bst.GetAllNodes();
+
+                if (NodesToWirte != null)
+                {
+                    foreach (Nodo node in NodesToWirte)
+                    {
+                        int Lenght = NodesToWirte[0].GetTotalAttributesCount();
+                        string[] Data = new string[Lenght];
+                        for (int i = 0; i < Lenght; i++)
+                        {
+                            Data[i] = node.GetAttribute(i).ToString();
+
+                        }
+                        BinaryTableEditor.BinaryInsertRow(Data, tablePath);
+                    }
+                }
             }
             else
             {
