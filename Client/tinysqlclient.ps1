@@ -1,3 +1,5 @@
+$ipEndPoint = [System.Net.IPEndPoint]::new([System.Net.IPAddress]::Parse("127.0.0.1"), 40404)
+
 function Execute-MyQuery {
     param (
         [Parameter(Mandatory = $true)]
@@ -17,7 +19,7 @@ function Execute-MyQuery {
         exit 1
     }
 
-    Process-QueryFile -QueryFile $QueryFile -Port $Port -IP $IP
+    Process-QueryFile -QueryFile $QueryFile
 }
 
 function validateFile {
@@ -41,15 +43,14 @@ function Process-QueryFile {
     param (
         [Parameter(Mandatory = $true)]
         [string]$QueryFile,
-        [int]$Port,  
-        [string]$IP  
+        [System.Net.Sockets.Socket]$Client    
     )
 
     Write-Host -ForegroundColor Magenta "[ LOADING $QueryFile ... ]"
     $lines = Get-Content $QueryFile
     foreach ($line in $lines) {
         if (-not [string]::IsNullOrWhiteSpace($line)) {
-            Send-SQLCommand -command $line
+            Send-SQLCommand -command $line -Client $Client
         }
     }
 }
@@ -113,11 +114,15 @@ function Send-SQLCommand {
     Send-Message -client $client -message $jsonMessage
     
     $response = Receive-Message -client $client
+
+    if ($null -eq $response) {
+        Write-Host -ForegroundColor Red "!ERROR: No response received from the server."
+        $client.Shutdown([System.Net.Sockets.SocketShutdown]::Both)
+        $client.Close()
+        return 
+    }
     
     $responseObject = ConvertFrom-Json -InputObject $response
-
-    $client.Shutdown([System.Net.Sockets.SocketShutdown]::Both)
-    $client.Close()
 
     $endTime = Get-Date
     $duration = $endTime - $startTime
@@ -137,6 +142,8 @@ function Send-SQLCommand {
             Print-SQLTable -filePath $filePath
         }
     }
+
+    return
 }
 
 function Print-SQLTable {

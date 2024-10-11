@@ -1,6 +1,4 @@
-id Color  Age 
--- ------ --- 
-1  Violet 11  
-2  Yellow 18  
-12 Yellow 18  
-18 Green  17  
+id Color  
+-- ------ 
+12 Yellow 
+2  Yellow 

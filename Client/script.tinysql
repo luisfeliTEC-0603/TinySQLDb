@@ -1,8 +1,8 @@
 CREATE DATABASE MyDataBase;
 SET MyDataBase;
-CREATE TABLE FirstTable (id INTEGER, Color VARCHAR(30), Age INTEGER);
-INSERT INTO FirstTable VALUES (12, Yellow, 18);
-INSERT INTO FirstTable VALUES (18, Green, 17);
-INSERT INTO FirstTable VALUES (1, Violet, 11);
-INSERT INTO FirstTable VALUES (2, Yellow, 18);
-SELECT * FROM FirstTable;
+CREATE TABLE Carros (id INTEGER, Color VARCHAR(30));
+INSERT INTO Carros VALUES (12, Yellow);
+INSERT INTO Carros VALUES (18, Green);
+INSERT INTO Carros VALUES (1, Violet);
+INSERT INTO Carros VALUES (2, Yellow);
+SELECT * FROM Carros WHERE Color == 'Yellow';

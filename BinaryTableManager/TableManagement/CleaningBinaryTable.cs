@@ -4,43 +4,42 @@ namespace BinaryTableManager.TableManagement
     {
         public static void CleanPath(string tablePath)
         {
-            int columnCount; // Number of columns
-            var columnTypes = new List<ColumnType>(); // List of ColumnTypes
-            var columnPadRight = new List<int>(); // List of padding lengths
-            var columnNames = new List<string>(); // List of column titles
-            int wordLength; // Varible that holds the lenght of the words
+            int columnCount;
+            var columnTypes = new List<ColumnType>();
+            var columnPadRight = new List<int>();
+            var columnNames = new List<string>();
+            int wordLength;
 
-            // Reading the binary table structure
+            // Usar un bloque 'using' para asegurar el cierre adecuado
             using (var memoryStream = new MemoryStream())
             using (FileStream stream = new FileStream(tablePath, FileMode.Open, FileAccess.Read))
             using (BinaryReader reader = new BinaryReader(stream))
             {
-                columnCount = reader.ReadInt32(); // Read the number of columns
+                columnCount = reader.ReadInt32();
 
                 for (int i = 0; i < columnCount; i++)
                 {
                     columnTypes.Add((ColumnType)reader.ReadInt32());
 
-                    // Read & store the padding value
-                    wordLength = reader.ReadInt32(); 
+                    wordLength = reader.ReadInt32();
                     columnPadRight.Add(wordLength);
 
                     // Validar wordLength antes de usarlo
-                    if (wordLength < 0) wordLength = 50; 
+                    if (wordLength < 0)
+                    {
+                        wordLength = 50; // Valor predeterminado
+                    }
 
-                    // Calculate character count
-                    int charCount = Math.Max(wordLength, 50);
-                    // Read the column name
+                    int charCount = Math.Max(wordLength, 50); // Asegura un valor positivo
                     columnNames.Add(new string(reader.ReadChars(charCount)).TrimEnd('\0')); // Remover caracteres nulos
                 }
             }
-
-            // Replace the original binary file with cleaned-up data
+            // Reemplazar el archivo binario original
             using (var memoryStream = new MemoryStream())
             using (var outputStream = new FileStream(tablePath, FileMode.Create, FileAccess.Write))
             {
-                memoryStream.Seek(0, SeekOrigin.Begin); // Move to the start of the memory stream
-                memoryStream.CopyTo(outputStream); // Copy the contents to the file
+                memoryStream.Seek(0, SeekOrigin.Begin);
+                memoryStream.CopyTo(outputStream);
             }
             
             using (FileStream stream = new FileStream(tablePath, FileMode.Create))
@@ -52,9 +51,9 @@ namespace BinaryTableManager.TableManagement
                 {
                     int padRightValue = columnPadRight[i];
                     
-                    writer.Write((int)columnTypes[i]); // Write the column type
-                    writer.Write(columnPadRight[i]); // Write the padding value
-                    writer.Write(columnNames[i].PadRight(padRightValue != -1 ? padRightValue : 50).ToCharArray()); // Write the column name
+                    writer.Write((int)columnTypes[i]);
+                    writer.Write(columnPadRight[i]);
+                    writer.Write(columnNames[i].PadRight( padRightValue != -1 ?  padRightValue : 50 ).ToCharArray());
                 }
             }
         }
